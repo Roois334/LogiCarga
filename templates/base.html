@@ -11,6 +11,11 @@
 </head>
 <body>
     {% if current_user and request.endpoint != 'login' %}
+    <!-- ═══ HAMBURGER MÓVIL ══════════════════════════════════════════ -->
+    <button class="hamburger-btn" id="hamburgerBtn" aria-label="Abrir menú">
+      <span></span><span></span><span></span>
+    </button>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
     <!-- ═══ TOPBAR ═══════════════════════════════════════════════════ -->
     <header class="topbar">
         <div class="topbar-left">
@@ -206,5 +211,34 @@
         {% block content %}{% endblock %}
     </main>
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+<script>
+  // ── Menú hamburguesa móvil ──────────────────────────────
+  const hamburgerBtn = document.getElementById('hamburgerBtn');
+  const sidebar      = document.querySelector('.sidebar');
+  const overlay      = document.getElementById('sidebarOverlay');
+
+  function openSidebar() {
+    sidebar.classList.add('open');
+    overlay.classList.add('active');
+    hamburgerBtn.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeSidebar() {
+    sidebar.classList.remove('open');
+    overlay.classList.remove('active');
+    hamburgerBtn.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  if (hamburgerBtn) hamburgerBtn.addEventListener('click', () => {
+    sidebar.classList.contains('open') ? closeSidebar() : openSidebar();
+  });
+  if (overlay) overlay.addEventListener('click', closeSidebar);
+
+  // Cerrar sidebar al hacer clic en un enlace del nav
+  document.querySelectorAll('.nav-item').forEach(link => {
+    link.addEventListener('click', closeSidebar);
+  });
+</script>
 </body>
 </html>
