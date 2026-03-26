@@ -235,9 +235,33 @@
   });
   if (overlay) overlay.addEventListener('click', closeSidebar);
 
-  // Cerrar sidebar al hacer clic en un enlace del nav
+  // Cerrar sidebar al hacer clic en un enlace del nav (pero NO en el trigger de perfil)
   document.querySelectorAll('.nav-item').forEach(link => {
     link.addEventListener('click', closeSidebar);
+  });
+
+  // ── Fix cerrar sesión en móvil ──────────────────────────
+  // Re-inicializar el trigger de perfil después de que el sidebar esté visible
+  document.addEventListener('DOMContentLoaded', function() {
+    const trigger = document.getElementById('sfUserTrigger');
+    const card    = document.getElementById('sfHoverCard');
+    if (!trigger || !card) return;
+
+    trigger.addEventListener('click', function(e) {
+      e.stopPropagation();
+      const isOpen = card.style.opacity === '1';
+      if (isOpen) {
+        card.style.opacity = '0';
+        card.style.pointerEvents = 'none';
+        card.style.transform = 'translateY(8px) scale(0.97)';
+        trigger.style.background = '';
+      } else {
+        card.style.opacity = '1';
+        card.style.pointerEvents = 'all';
+        card.style.transform = 'translateY(0) scale(1)';
+        trigger.style.background = 'rgba(251,191,36,0.10)';
+      }
+    });
   });
 </script>
 </body>
