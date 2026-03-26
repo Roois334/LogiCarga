@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block title %}Mantenimientos | LogiCarga{% endblock %}
+{% block content %}
+<section class="page-header">
+    <h2>Mantenimientos</h2>
+    <p>Programación preventiva de la flota.</p>
+</section>
+<section class="card"><h3>Nuevo mantenimiento</h3>
+<form method="post" class="grid-form">
+<label>Vehículo<select name="vehiculo_id">{% for item in vehiculos %}<option value="{{ item.id }}">{{ item.placa }}</option>{% endfor %}</select></label>
+<label>Fecha<input type="date" name="fecha_mantenimiento"></label>
+<label>Tipo<select name="tipo_mantenimiento"><option>Preventivo</option><option>Correctivo</option></select></label>
+<label>Kilometraje programado<input type="number" name="kilometraje_programado" required></label>
+<label>Costo<input type="number" step="0.01" name="costo" required></label>
+<label>Estado<select name="estado"><option>Pendiente</option><option>Programado</option><option>Completado</option></select></label>
+<label class="full-width">Descripción<textarea name="descripcion"></textarea></label>
+<div class="form-actions"><button type="submit">Guardar</button></div>
+</form></section>
+<section class="card"><h3>Listado</h3><table><thead><tr><th>ID</th><th>Vehículo</th><th>Tipo</th><th>Kilometraje</th><th>Costo</th><th>Estado</th></tr></thead><tbody>{% for item in items %}<tr><td>{{ item.id }}</td><td>{{ item.placa }}</td><td>{{ item.tipo_mantenimiento }}</td><td>{{ item.kilometraje_programado }}</td><td>{{ item.costo }}</td><td>{{ item.estado }}</td></tr>{% endfor %}</tbody></table></section>
+{% endblock %}

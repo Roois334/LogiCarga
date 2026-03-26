@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block title %}Incidentes | LogiCarga{% endblock %}
+{% block content %}
+<section class="page-header">
+    <h2>Incidentes</h2>
+    <p>Control de novedades operativas.</p>
+</section>
+<section class="card"><h3>Nuevo incidente</h3>
+<form method="post" class="grid-form">
+<label>Viaje<select name="viaje_id">{% for item in viajes %}<option value="{{ item.id }}">{{ item.id }} - {{ item.ciudad_origen }} / {{ item.ciudad_destino }}</option>{% endfor %}</select></label>
+<label>Conductor<select name="conductor_id">{% for item in conductores %}<option value="{{ item.id }}">{{ item.nombre_completo }}</option>{% endfor %}</select></label>
+<label>Tipo<select name="tipo_incidente"><option>Falla mecánica</option><option>Retraso en carretera</option><option>Accidente</option><option>Problema durante la entrega</option></select></label>
+<label>Ciudad<input name="ciudad"></label>
+<label>Fecha<input type="datetime-local" name="fecha_incidente" required></label>
+<label>Severidad<select name="severidad"><option>Baja</option><option>Media</option><option>Alta</option></select></label>
+<label>Estado<select name="estado"><option>Reportado</option><option>En revisión</option><option>Cerrado</option></select></label>
+<label class="full-width">Descripción<textarea name="descripcion" required></textarea></label>
+<div class="form-actions"><button type="submit">Guardar</button></div>
+</form></section>
+<section class="card"><h3>Listado</h3><table><thead><tr><th>ID</th><th>Viaje</th><th>Conductor</th><th>Tipo</th><th>Severidad</th><th>Estado</th></tr></thead><tbody>{% for item in items %}<tr><td>{{ item.id }}</td><td>{{ item.viaje_id }}</td><td>{{ item.conductor }}</td><td>{{ item.tipo_incidente }}</td><td>{{ item.severidad }}</td><td>{{ item.estado }}</td></tr>{% endfor %}</tbody></table></section>
+{% endblock %}

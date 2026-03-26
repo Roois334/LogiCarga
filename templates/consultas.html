@@ -1,0 +1,618 @@
+{% extends 'base.html' %}
+{% block title %}Consultas | LogiCarga{% endblock %}
+{% block page_title %}Consultas{% endblock %}
+{% block content %}
+
+<style>
+/* ══════════════════════════════════════════════
+   CONSULTAS — PANEL OPERATIVO
+══════════════════════════════════════════════ */
+.cq-header { margin-bottom: 28px; }
+.cq-header h2 { font-size: 26px; font-weight: 800; margin: 0 0 5px; background: linear-gradient(135deg, var(--amber-700), var(--amber-400)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.cq-header p { color: var(--muted); font-size: 13.5px; margin: 0; }
+
+/* Tabs */
+.cq-tabs { display: flex; gap: 4px; margin-bottom: 24px; background: var(--cream); border: 1px solid var(--border); border-radius: 12px; padding: 4px; width: fit-content; }
+.cq-tab { padding: 8px 20px; border-radius: 9px; font-size: 13px; font-weight: 700; cursor: pointer; border: none; background: transparent; color: var(--muted); transition: all 0.2s; }
+.cq-tab.active { background: white; color: var(--text-dark); box-shadow: 0 2px 8px var(--shadow); }
+
+/* ── PANEL CONDUCTORES ── */
+.conductores-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+.cond-card {
+  background: var(--white); border: 1.5px solid var(--border); border-radius: 18px;
+  padding: 0; overflow: hidden; cursor: pointer;
+  transition: all 0.22s cubic-bezier(.22,1,.36,1);
+  box-shadow: 0 2px 8px var(--shadow);
+}
+.cond-card:hover { border-color: var(--amber-300); transform: translateY(-3px); box-shadow: 0 8px 28px rgba(120,53,15,0.14); }
+.cond-card-top { padding: 20px; display: flex; align-items: flex-start; gap: 14px; }
+.cond-avatar {
+  width: 48px; height: 48px; border-radius: 14px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; font-weight: 800; color: white;
+  background: linear-gradient(135deg, #10b981, #065f46);
+}
+.cond-info { flex: 1; min-width: 0; }
+.cond-name { font-size: 15px; font-weight: 800; color: var(--text-dark); margin: 0 0 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cond-sub { font-size: 12px; color: var(--muted); margin: 0 0 8px; }
+.cond-lic { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 700; padding: 2px 9px; border-radius: 99px; background: rgba(245,158,11,0.1); color: var(--amber-700); border: 1px solid rgba(245,158,11,0.25); }
+.cond-estado-badge { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 700; padding: 2px 9px; border-radius: 99px; margin-left: 5px; }
+.ceb-activo { background: rgba(16,185,129,0.1); color: #065f46; border: 1px solid rgba(16,185,129,0.25); }
+.ceb-activo::before { content:''; width:6px; height:6px; border-radius:50%; background:#10b981; display:inline-block; }
+.ceb-inactivo { background: rgba(107,114,128,0.1); color: #374151; border: 1px solid rgba(107,114,128,0.25); }
+.cond-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; border-top: 1px solid var(--border); }
+.cond-stat { padding: 12px; text-align: center; border-right: 1px solid var(--border); }
+.cond-stat:last-child { border-right: none; }
+.cond-stat-num { font-size: 18px; font-weight: 800; color: var(--amber-600); line-height: 1; }
+.cond-stat-label { font-size: 10px; color: var(--muted); margin-top: 3px; text-transform: uppercase; letter-spacing: 0.05em; }
+.cond-arrow { margin-left: auto; color: var(--muted); flex-shrink: 0; transition: transform 0.2s; }
+.cond-card:hover .cond-arrow { transform: translateX(3px); color: var(--amber-500); }
+
+/* ── PANEL VIAJES ── */
+.viajes-list { display: flex; flex-direction: column; gap: 10px; }
+.vj-row {
+  background: var(--white); border: 1.5px solid var(--border); border-radius: 14px;
+  padding: 16px 20px; display: flex; align-items: center; gap: 16px;
+  transition: all 0.2s; cursor: pointer;
+}
+.vj-row:hover { border-color: var(--amber-300); background: var(--cream); box-shadow: 0 4px 16px var(--shadow); }
+.vj-id { font-size: 11px; font-weight: 800; color: var(--muted); min-width: 28px; }
+.vj-route { flex: 1; }
+.vj-route strong { font-size: 14px; font-weight: 700; color: var(--text-dark); }
+.vj-route span { font-size: 12px; color: var(--muted); display: block; margin-top: 2px; }
+.vj-meta { display: flex; align-items: center; gap: 10px; }
+.estado-pill { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 99px; border: 1px solid; }
+.ep-enruta { background: rgba(16,185,129,0.1); color: #065f46; border-color: rgba(16,185,129,0.3); }
+.ep-programado { background: rgba(59,130,246,0.1); color: #1e40af; border-color: rgba(59,130,246,0.3); }
+.ep-completado { background: rgba(107,114,128,0.1); color: #374151; border-color: rgba(107,114,128,0.3); }
+.ep-cancelado { background: rgba(239,68,68,0.1); color: #dc2626; border-color: rgba(239,68,68,0.3); }
+.vj-placa { font-size: 11.5px; font-weight: 700; padding: 3px 9px; border-radius: 6px; background: var(--cream); border: 1px solid var(--border); font-family: 'JetBrains Mono', monospace; color: var(--text-dark); }
+
+/* ══════════════════════════════════════════════
+   MODAL DE DETALLE DE CONDUCTOR
+══════════════════════════════════════════════ */
+.modal-backdrop {
+  display: none; position: fixed; inset: 0;
+  background: rgba(10,5,0,0.65); z-index: 1000;
+  align-items: center; justify-content: center;
+  padding: 20px;
+}
+.modal-backdrop.show { display: flex; }
+.modal-box {
+  background: var(--white); border-radius: 22px;
+  width: 100%; max-width: 760px; max-height: 88vh;
+  overflow: hidden; display: flex; flex-direction: column;
+  box-shadow: 0 30px 80px rgba(0,0,0,0.35);
+  animation: modalIn 0.3s cubic-bezier(.22,1,.36,1);
+}
+@keyframes modalIn { from { opacity:0; transform:translateY(30px) scale(0.97); } to { opacity:1; transform:none; } }
+
+.modal-header {
+  padding: 24px 28px 0;
+  display: flex; align-items: flex-start; gap: 18px;
+}
+.modal-avatar {
+  width: 60px; height: 60px; border-radius: 18px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px; font-weight: 900; color: white;
+  background: linear-gradient(135deg, #10b981, #065f46);
+}
+.modal-title-block { flex: 1; }
+.modal-name { font-size: 20px; font-weight: 800; margin: 0 0 4px; color: var(--text-dark); }
+.modal-meta { font-size: 13px; color: var(--muted); margin: 0; }
+.modal-close {
+  width: 32px; height: 32px; border-radius: 8px; border: 1.5px solid var(--border);
+  background: var(--cream); cursor: pointer; display: flex; align-items: center; justify-content: center;
+  color: var(--muted); font-size: 16px; transition: all 0.15s; flex-shrink: 0;
+}
+.modal-close:hover { background: #fee2e2; border-color: #fca5a5; color: #dc2626; }
+
+.modal-kpis {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 12px; padding: 20px 28px;
+  border-bottom: 1px solid var(--border);
+}
+.modal-kpi {
+  background: var(--cream); border: 1px solid var(--border); border-radius: 14px;
+  padding: 14px; text-align: center;
+}
+.modal-kpi-num { font-size: 24px; font-weight: 900; color: var(--amber-600); line-height: 1; }
+.modal-kpi-label { font-size: 11px; color: var(--muted); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.05em; }
+
+.modal-body { overflow-y: auto; flex: 1; padding: 20px 28px 28px; }
+.modal-section-title {
+  font-size: 11.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--amber-700); margin: 0 0 12px;
+  display: flex; align-items: center; gap: 8px;
+}
+.modal-section-title::after { content:''; flex:1; height:1px; background:var(--border); }
+.modal-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 24px; }
+.modal-info-item { background: var(--cream); border-radius: 10px; padding: 10px 14px; }
+.modal-info-item .mil { font-size: 10.5px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 3px; }
+.modal-info-item .miv { font-size: 13.5px; font-weight: 700; color: var(--text-dark); }
+
+/* Viajes del conductor en modal */
+.modal-viaje-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 14px; border-radius: 10px; border: 1px solid var(--border);
+  margin-bottom: 8px; background: white; transition: background 0.15s, border-color 0.15s;
+  cursor: pointer;
+}
+.modal-viaje-row:hover { background: var(--cream); border-color: var(--amber-300); }
+.mvj-id { font-size: 11px; font-weight: 800; color: var(--muted); min-width: 24px; }
+.mvj-route { flex: 1; font-size: 13px; font-weight: 700; color: var(--text-dark); }
+.mvj-date { font-size: 11.5px; color: var(--muted); }
+.no-viajes { text-align:center; padding:32px; color:var(--muted); font-size:13px; }
+
+/* ══════════════════════════════════════════════
+   MODAL DE DETALLE DE VIAJE
+══════════════════════════════════════════════ */
+.vj-row { cursor: pointer; }
+
+.modal-viaje-backdrop {
+  display: none; position: fixed; inset: 0;
+  background: rgba(10,5,0,0.70); z-index: 1100;
+  align-items: center; justify-content: center;
+  padding: 20px; backdrop-filter: blur(4px);
+}
+.modal-viaje-backdrop.show { display: flex; }
+.modal-viaje-box {
+  background: var(--white); border-radius: 24px;
+  width: 100%; max-width: 680px; max-height: 90vh;
+  overflow: hidden; display: flex; flex-direction: column;
+  box-shadow: 0 30px 80px rgba(0,0,0,0.35);
+  animation: modalIn 0.3s cubic-bezier(.22,1,.36,1);
+}
+
+/* Header del modal viaje */
+.mvj-modal-head {
+  padding: 0;
+  flex-shrink: 0;
+}
+.mvj-head-gradient {
+  background: linear-gradient(135deg, #1c1009 0%, #2e1b0b 60%, #3a2010 100%);
+  padding: 26px 28px 22px;
+  display: flex; align-items: flex-start; gap: 16px;
+  position: relative; overflow: hidden;
+}
+.mvj-head-gradient::before {
+  content:''; position:absolute; top:-60px; right:-60px;
+  width:200px; height:200px; border-radius:50%;
+  background: radial-gradient(circle, rgba(251,191,36,0.15) 0%, transparent 70%);
+  pointer-events:none;
+}
+.mvj-head-icon {
+  width: 52px; height: 52px; border-radius: 16px; flex-shrink: 0;
+  background: linear-gradient(135deg,#f59e0b,#b45309);
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 6px 20px rgba(217,119,6,0.45);
+}
+.mvj-head-text { flex: 1; }
+.mvj-head-num { font-size: 11px; font-weight: 800; color: rgba(251,191,36,0.55); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 4px; }
+.mvj-head-ruta { font-size: 20px; font-weight: 800; color: #fcd34d; margin: 0 0 4px; }
+.mvj-head-sub { font-size: 12.5px; color: #a08060; }
+.mvj-modal-close {
+  width: 34px; height: 34px; border-radius: 9px; border: 1px solid rgba(251,191,36,0.2);
+  background: rgba(251,191,36,0.08); cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  color: rgba(251,191,36,0.6); font-size: 17px;
+  transition: all 0.15s; flex-shrink: 0;
+}
+.mvj-modal-close:hover { background: rgba(239,68,68,0.15); border-color: rgba(239,68,68,0.3); color: #fca5a5; }
+
+/* KM Banner */
+.mvj-km-banner {
+  display: none; align-items: center; justify-content: space-around;
+  background: linear-gradient(135deg,#064e3b,#065f46);
+  padding: 16px 28px; gap: 8px; flex-wrap: wrap;
+}
+.mvj-km-banner.visible { display: flex; }
+.mvj-km-stat { text-align: center; }
+.mvj-km-stat .ks-v { font-family:'JetBrains Mono',monospace; font-size: 22px; font-weight: 800; color: #6ee7b7; line-height:1; }
+.mvj-km-stat .ks-v.big { font-size: 28px; color: #a7f3d0; }
+.mvj-km-stat .ks-l { font-size: 9.5px; font-weight: 700; color: rgba(167,243,208,0.6); text-transform: uppercase; letter-spacing: 0.1em; margin-top: 4px; }
+.mvj-km-div { width:1px; height:38px; background: rgba(167,243,208,0.18); }
+
+/* Cuerpo */
+.mvj-modal-body { overflow-y: auto; flex: 1; padding: 24px 28px 28px; }
+.mvj-section {
+  font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em;
+  color: var(--amber-700); margin: 0 0 12px; display: flex; align-items: center; gap: 8px;
+}
+.mvj-section::after { content:''; flex:1; height:1px; background:var(--amber-100); }
+.mvj-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+.mvj-item {
+  background: var(--cream); border: 1px solid var(--amber-100);
+  border-radius: 12px; padding: 12px 14px;
+}
+.mvj-item .vi-l { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 5px; display: flex; align-items: center; gap: 4px; }
+.mvj-item .vi-v { font-size: 13px; font-weight: 700; color: var(--text-dark); }
+.mvj-item .vi-v.mono { font-family:'JetBrains Mono',monospace; }
+.mvj-item.green { background:linear-gradient(135deg,#ecfdf5,#d1fae5); border-color:rgba(16,185,129,0.25); }
+.mvj-item.green .vi-l { color:#059669; }
+.mvj-item.green .vi-v { color:#065f46; }
+.mvj-item.blue { background:linear-gradient(135deg,#eff6ff,#dbeafe); border-color:rgba(59,130,246,0.22); }
+.mvj-item.blue .vi-l { color:#1d4ed8; }
+.mvj-item.blue .vi-v { color:#1e3a8a; }
+.mvj-item.amber { background:linear-gradient(135deg,#fef3c7,#fde68a); border-color:rgba(245,158,11,0.3); }
+.mvj-item.amber .vi-l { color:#92400e; }
+.mvj-item.amber .vi-v { color:#78350f; }
+.mvj-obs-box {
+  padding: 13px 16px; background: rgba(245,158,11,0.06);
+  border-left: 3px solid var(--amber-400); border-radius: 0 12px 12px 0;
+  font-size: 12.5px; color: var(--text-mid); line-height: 1.6; margin-top: 4px;
+}
+.mvj-empty-obs { text-align:center; padding:20px; color:var(--muted); font-size:13px; font-style:italic; }
+</style>
+
+<div class="cq-header">
+  <h2>Panel Operativo</h2>
+  <p>Consulta conductores, viajes y el estado de la operacion en tiempo real.</p>
+</div>
+
+<!-- Tabs -->
+<div class="cq-tabs">
+  <button class="cq-tab active" onclick="switchTab('conductores', this)">Conductores ({{ conductores|length }})</button>
+  <button class="cq-tab" onclick="switchTab('viajes', this)">Todos los viajes ({{ viajes|length }})</button>
+</div>
+
+<!-- ── TAB: CONDUCTORES ── -->
+<div id="tab-conductores">
+  {% if conductores %}
+  <div class="conductores-grid">
+    {% for c in conductores %}
+    <div class="cond-card" data-conductor-id="{{ c.id }}" onclick="openConductorById({{ c.id }})">
+      <div class="cond-card-top">
+        <div class="cond-avatar">{{ c.nombre_completo[0] | upper }}</div>
+        <div class="cond-info">
+          <p class="cond-name">{{ c.nombre_completo }}</p>
+          <p class="cond-sub">{{ c.ciudad or 'Ciudad no registrada' }}</p>
+          <div>
+            {% if c.tipo_licencia %}<span class="cond-lic">{{ c.tipo_licencia }}</span>{% endif %}
+            <span class="cond-estado-badge {% if c.estado == 'Activo' %}ceb-activo{% else %}ceb-inactivo{% endif %}">{{ c.estado }}</span>
+          </div>
+        </div>
+        <svg class="cond-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
+      </div>
+      <div class="cond-stats">
+        <div class="cond-stat">
+          <div class="cond-stat-num">{{ c.total_viajes }}</div>
+          <div class="cond-stat-label">Viajes</div>
+        </div>
+        <div class="cond-stat">
+          <div class="cond-stat-num">{{ c.total_incidentes }}</div>
+          <div class="cond-stat-label">Incidentes</div>
+        </div>
+        <div class="cond-stat">
+          <div class="cond-stat-num">${{ "{:,.0f}".format(c.gasto_combustible|float).replace(",",".") if c.gasto_combustible else '0' }}</div>
+          <div class="cond-stat-label">Combustible</div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div style="text-align:center;padding:60px;color:var(--muted);">No hay conductores registrados.</div>
+  {% endif %}
+</div>
+
+<!-- ── TAB: VIAJES ── -->
+<div id="tab-viajes" style="display:none;">
+  <div class="viajes-list">
+    {% for v in viajes %}
+    <div class="vj-row" onclick="openViajeById({{ v.id }})" style="cursor:pointer;">
+      <span class="vj-id">#{{ v.id }}</span>
+      <div class="vj-route">
+        <strong>{{ v.ciudad_origen }} → {{ v.ciudad_destino }}</strong>
+        <span>{{ v.conductor }} · {{ v.fecha_salida | fecha_es if v.fecha_salida else '—' }}</span>
+      </div>
+      <div class="vj-meta">
+        <span class="vj-placa">{{ v.placa }}</span>
+        {% set e = v.estado %}
+        {% if e == 'En ruta' %}<span class="estado-pill ep-enruta">En ruta</span>
+        {% elif e == 'Programado' %}<span class="estado-pill ep-programado">Programado</span>
+        {% elif e == 'Completado' %}<span class="estado-pill ep-completado">Completado</span>
+        {% else %}<span class="estado-pill ep-cancelado">{{ e }}</span>{% endif %}
+      </div>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="color:var(--muted);flex-shrink:0;"><path d="M9 18l6-6-6-6"/></svg>
+    </div>
+    {% else %}
+    <div style="text-align:center;padding:60px;color:var(--muted);">No hay viajes registrados.</div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     MODAL DETALLE CONDUCTOR
+══════════════════════════════════════════════ -->
+<div class="modal-backdrop" id="modalBackdrop" onclick="closeModal(event)">
+  <div class="modal-box" id="modalBox">
+
+    <div class="modal-header" id="modalHeader">
+      <div class="modal-avatar" id="mAvatar">C</div>
+      <div class="modal-title-block">
+        <p class="modal-name" id="mName">Nombre</p>
+        <p class="modal-meta" id="mMeta">—</p>
+      </div>
+      <button class="modal-close" onclick="closeModalDirect()">×</button>
+    </div>
+
+    <div class="modal-kpis" id="modalKpis">
+      <div class="modal-kpi"><div class="modal-kpi-num" id="mkViajes">0</div><div class="modal-kpi-label">Viajes totales</div></div>
+      <div class="modal-kpi"><div class="modal-kpi-num" id="mkIncidentes">0</div><div class="modal-kpi-label">Incidentes</div></div>
+      <div class="modal-kpi"><div class="modal-kpi-num" id="mkCombustible">$0</div><div class="modal-kpi-label">Gasto combustible</div></div>
+    </div>
+
+    <div class="modal-body">
+      <p class="modal-section-title">Informacion del conductor</p>
+      <div class="modal-info-grid" id="modalInfoGrid"></div>
+
+      <p class="modal-section-title">Historial de viajes</p>
+      <div id="modalViajes"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     MODAL DETALLE VIAJE
+══════════════════════════════════════════════ -->
+<div class="modal-viaje-backdrop" id="modalViajeBackdrop" onclick="closeViajeModal(event)">
+  <div class="modal-viaje-box" id="modalViajeBox">
+
+    <div class="mvj-modal-head">
+      <div class="mvj-head-gradient">
+        <div class="mvj-head-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+            <rect x="1" y="9" width="18" height="9" rx="2"/><path d="M19 13h3l1 4H19"/>
+            <circle cx="6" cy="20" r="2"/><circle cx="15" cy="20" r="2"/><path d="M1 9l3-6h12l2 6"/>
+          </svg>
+        </div>
+        <div class="mvj-head-text">
+          <div class="mvj-head-num" id="mvjNum">Viaje #—</div>
+          <div class="mvj-head-ruta" id="mvjRuta">Origen → Destino</div>
+          <div class="mvj-head-sub" id="mvjSub">—</div>
+        </div>
+        <button class="mvj-modal-close" onclick="closeViajeModalDirect()">×</button>
+      </div>
+      <!-- Banner KM -->
+      <div class="mvj-km-banner" id="mvjKmBanner">
+        <div class="mvj-km-stat">
+          <div class="ks-v" id="mvjKmInicio">—</div>
+          <div class="ks-l">📍 Km inicio</div>
+        </div>
+        <div class="mvj-km-div"></div>
+        <div class="mvj-km-stat">
+          <div class="ks-v big" id="mvjKmRecorridos">—</div>
+          <div class="ks-l">🛣️ Distancia recorrida</div>
+        </div>
+        <div class="mvj-km-div"></div>
+        <div class="mvj-km-stat">
+          <div class="ks-v" id="mvjKmFin">—</div>
+          <div class="ks-l">🏁 Km fin</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mvj-modal-body">
+      <!-- Ruta y estado -->
+      <p class="mvj-section">Información del viaje</p>
+      <div class="mvj-grid" id="mvjInfoGrid"></div>
+
+      <!-- Kilometraje -->
+      <p class="mvj-section" id="mvjSecKm" style="display:none;">Kilometraje</p>
+      <div class="mvj-grid" id="mvjKmGrid" style="display:none;"></div>
+
+      <!-- Combustible -->
+      <p class="mvj-section" id="mvjSecComb" style="display:none;">Combustible</p>
+      <div class="mvj-grid" id="mvjCombGrid" style="display:none;"></div>
+
+      <!-- Observaciones -->
+      <p class="mvj-section">Observaciones</p>
+      <div id="mvjObs"></div>
+    </div>
+
+  </div>
+</div>
+
+<script id="cq-data" type="application/json">
+{
+  "conductores": {{ conductores | tojson }},
+  "viajes":      {{ viajes      | tojson }}
+}
+</script>
+<script>
+/* ── Datos seguros desde JSON ── */
+var CQ = {};
+try {
+  CQ = JSON.parse(document.getElementById('cq-data').textContent);
+} catch(e) { CQ = { conductores: [], viajes: [] }; }
+
+/* ── Fechas en español ── */
+var MESES_ES_LARGO = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+function fechaEs(str, conHora) {
+  if (!str || str === 'None' || str === 'null') return '—';
+  try {
+    // Intentar parsear directamente
+    var d = new Date(str);
+    // Si falla, intentar reemplazando espacio por T
+    if (isNaN(d.getTime())) d = new Date(str.replace(' ', 'T'));
+    if (isNaN(d.getTime())) return str;
+    // Usar UTC para evitar desfases de zona horaria en strings con fecha simple
+    var usarUTC = !conHora && !str.includes('T') && !str.includes(':');
+    var dia  = usarUTC ? d.getUTCDate()    : d.getDate();
+    var mes  = usarUTC ? d.getUTCMonth()   : d.getMonth();
+    var anio = usarUTC ? d.getUTCFullYear(): d.getFullYear();
+    var h    = d.getHours();
+    var m    = d.getMinutes();
+    var mesNombre = MESES_ES_LARGO[mes];
+    if (conHora) {
+      return String(dia).padStart(2,'0') + ' de ' + mesNombre + ' de ' + anio
+           + ', ' + String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0');
+    }
+    return String(dia).padStart(2,'0') + ' de ' + mesNombre + ' de ' + anio;
+  } catch(e) { return str; }
+}
+
+function switchTab(tab, btn) {
+  document.getElementById('tab-conductores').style.display = tab === 'conductores' ? '' : 'none';
+  document.getElementById('tab-viajes').style.display      = tab === 'viajes'      ? '' : 'none';
+  document.querySelectorAll('.cq-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function openConductorById(id) {
+  var c = CQ.conductores.find(function(x){ return x.id === id; });
+  if (!c) return;
+  openConductor(c, CQ.viajes);
+}
+
+function openConductor(c, allViajes) {
+  document.getElementById('mAvatar').textContent = (c.nombre_completo || '?')[0].toUpperCase();
+  document.getElementById('mName').textContent   = c.nombre_completo || '—';
+  document.getElementById('mMeta').textContent   = (c.ciudad || 'Ciudad no registrada') + ' · ' + (c.telefono || 'Sin teléfono');
+  document.getElementById('mkViajes').textContent     = c.total_viajes    || 0;
+  document.getElementById('mkIncidentes').textContent = c.total_incidentes || 0;
+  var gasto = parseFloat(c.gasto_combustible || 0);
+  document.getElementById('mkCombustible').textContent = '$' + gasto.toLocaleString('es-CO', {maximumFractionDigits:0});
+
+  /* Info grid */
+  var venc = c.fecha_vencimiento_licencia_str || '—';
+  var fields = [
+    ['Teléfono',        c.telefono        || '—'],
+    ['Ciudad',          c.ciudad          || '—'],
+    ['Licencia N°',     c.numero_licencia || '—'],
+    ['Categoría',       c.tipo_licencia   || '—'],
+    ['Vence licencia',  venc],
+    ['Estado',          c.estado          || '—'],
+  ];
+  document.getElementById('modalInfoGrid').innerHTML = fields.map(function(f){
+    return '<div class="modal-info-item"><div class="mil">'+f[0]+'</div><div class="miv">'+f[1]+'</div></div>';
+  }).join('');
+
+  /* Viajes del conductor */
+  var misViajes = (allViajes || []).filter(function(v){
+    return String(v.conductor_id) === String(c.id) || v.conductor === c.nombre_completo;
+  });
+  var estadosCls = {'En ruta':'ep-enruta','Programado':'ep-programado','Completado':'ep-completado','Finalizado':'ep-completado'};
+  var viajesHtml = misViajes.length === 0
+    ? '<div class="no-viajes">Este conductor no tiene viajes registrados.</div>'
+    : misViajes.map(function(v){
+        var cls   = estadosCls[v.estado] || 'ep-cancelado';
+        var fecha = v.fecha_salida_str ? v.fecha_salida_str.substring(0,v.fecha_salida_str.indexOf(',') > 0 ? v.fecha_salida_str.length : 100) : '—';
+        return '<div class="modal-viaje-row" onclick="openViaje(CQ.viajes.find(function(x){return x.id==='+v.id+'}))">'
+          + '<span class="mvj-id">#'+v.id+'</span>'
+          + '<span class="mvj-route">'+v.ciudad_origen+' → '+v.ciudad_destino+'</span>'
+          + '<span class="mvj-date">'+fecha+'</span>'
+          + '<span class="estado-pill '+cls+'">'+v.estado+'</span>'
+          + '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="color:var(--muted);flex-shrink:0;margin-left:4px;"><path d="M9 18l6-6-6-6"/></svg>'
+          + '</div>';
+      }).join('');
+  document.getElementById('modalViajes').innerHTML = viajesHtml;
+
+  document.getElementById('modalBackdrop').classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal(e) {
+  if (e.target === document.getElementById('modalBackdrop')) closeModalDirect();
+}
+function closeModalDirect() {
+  document.getElementById('modalBackdrop').classList.remove('show');
+  document.body.style.overflow = '';
+}
+  /* ── MODAL DE VIAJE ── */
+  function openViajeById(id) {
+    var v = CQ.viajes.find(function(x){ return x.id === id; });
+    if (!v) return;
+    openViaje(v);
+  }
+
+  function openViaje(v) {
+    // Header
+    document.getElementById('mvjNum').textContent  = 'Viaje #' + v.id;
+    document.getElementById('mvjRuta').textContent = (v.ciudad_origen || '—') + ' → ' + (v.ciudad_destino || '—');
+    document.getElementById('mvjSub').textContent  = (v.conductor || '—') + '  ·  ' + (v.placa || '—') + '  ·  ' + (v.tipo_carga || '—');
+
+    // KM Banner
+    var kmIni = parseFloat(v.kilometraje_inicio) || 0;
+    var kmFin = parseFloat(v.kilometraje_fin)    || 0;
+    var banner = document.getElementById('mvjKmBanner');
+    if (kmIni && kmFin) {
+      banner.classList.add('visible');
+      document.getElementById('mvjKmInicio').textContent    = kmIni.toLocaleString('es-CO');
+      document.getElementById('mvjKmRecorridos').textContent = (kmFin - kmIni).toLocaleString('es-CO') + ' km';
+      document.getElementById('mvjKmFin').textContent       = kmFin.toLocaleString('es-CO');
+    } else {
+      banner.classList.remove('visible');
+    }
+
+    // Info principal
+    var estadosCls = {'En ruta':'ep-enruta','Programado':'ep-programado','Completado':'ep-completado','Finalizado':'ep-completado'};
+    var cls = estadosCls[v.estado] || 'ep-cancelado';
+    var fechaSal = v.fecha_salida_str  || '—';
+    var fechaLle = v.fecha_llegada_str !== undefined ? (v.fecha_llegada_str || 'En curso') : 'En curso';
+    document.getElementById('mvjInfoGrid').innerHTML = [
+      ['🚛 Vehículo',      v.placa || '—',           'mono',  ''],
+      ['📦 Tipo de carga', v.tipo_carga || '—',       '',      ''],
+      ['🏷️ Estado',       '<span class="estado-pill '+cls+'">'+v.estado+'</span>', 'raw', ''],
+      ['👤 Conductor',     v.conductor || '—',         '',      'blue'],
+      ['📅 Fecha salida',  fechaSal,                   'mono',  'blue'],
+      ['📅 Fecha llegada', fechaLle,                   'mono',  'blue'],
+    ].map(function(f){
+      var extraCls = f[3] ? ' ' + f[3] : '';
+      var val = f[2] === 'raw' ? f[1] : '<span class="vi-v '+(f[2]||'')+'">'+f[1]+'</span>';
+      return '<div class="mvj-item'+extraCls+'"><div class="vi-l">'+f[0]+'</div>'+val+'</div>';
+    }).join('');
+
+    // KM detalle
+    var hasKm = kmIni > 0;
+    document.getElementById('mvjSecKm').style.display   = hasKm ? '' : 'none';
+    document.getElementById('mvjKmGrid').style.display  = hasKm ? '' : 'none';
+    if (hasKm) {
+      var kmRec = kmFin ? (kmFin - kmIni).toLocaleString('es-CO') + ' km' : '—';
+      document.getElementById('mvjKmGrid').innerHTML = [
+        ['📍 Km inicio',       kmIni.toLocaleString('es-CO') + ' km', 'mono', ''],
+        ['🏁 Km fin',          kmFin ? kmFin.toLocaleString('es-CO') + ' km' : '—', 'mono', ''],
+        ['🛣️ Km recorridos',  kmRec, 'mono', 'green'],
+      ].map(function(f){
+        return '<div class="mvj-item '+f[3]+'"><div class="vi-l">'+f[0]+'</div><div class="vi-v '+f[2]+'">'+f[1]+'</div></div>';
+      }).join('');
+    }
+
+    // Combustible
+    var cIni = parseFloat(v.combustible_inicio) || 0;
+    var cFin = parseFloat(v.combustible_fin)    || 0;
+    var hasComb = cIni > 0;
+    document.getElementById('mvjSecComb').style.display  = hasComb ? '' : 'none';
+    document.getElementById('mvjCombGrid').style.display = hasComb ? '' : 'none';
+    if (hasComb) {
+      var consumo = cFin ? (cIni - cFin).toFixed(1) + ' L usados' : '—';
+      document.getElementById('mvjCombGrid').innerHTML = [
+        ['⛽ Comb. inicio', cIni + ' L', 'mono', ''],
+        ['⛽ Comb. fin',    cFin ? cFin + ' L' : '—', 'mono', ''],
+        ['🔥 Consumo',      consumo, 'mono', 'amber'],
+      ].map(function(f){
+        return '<div class="mvj-item '+f[3]+'"><div class="vi-l">'+f[0]+'</div><div class="vi-v '+f[2]+'">'+f[1]+'</div></div>';
+      }).join('');
+    }
+
+    // Observaciones
+    document.getElementById('mvjObs').innerHTML = v.observaciones
+      ? '<div class="mvj-obs-box">📝 <strong>Novedades:</strong> ' + v.observaciones + '</div>'
+      : '<div class="mvj-empty-obs">Sin observaciones registradas.</div>';
+
+    document.getElementById('modalViajeBackdrop').classList.add('show');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeViajeModal(e) {
+    if (e.target === document.getElementById('modalViajeBackdrop')) closeViajeModalDirect();
+  }
+  function closeViajeModalDirect() {
+    document.getElementById('modalViajeBackdrop').classList.remove('show');
+    document.body.style.overflow = '';
+  }
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') { closeViajeModalDirect(); closeModalDirect(); } });
+</script>
+{% endblock %}

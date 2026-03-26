@@ -1,0 +1,404 @@
+{% extends 'base.html' %}
+{% block title %}Reportes | LogiCarga{% endblock %}
+{% block page_title %}Reportes{% endblock %}
+{% block content %}
+
+<style>
+/* ── REPORTES PREMIUM ─────────────────────────────── */
+.rep-hero {
+  background: linear-gradient(135deg, #1c1009 0%, #2e1b0b 60%, #3a2010 100%);
+  border-radius: 20px; padding: 26px 32px; margin-bottom: 26px;
+  display: flex; align-items: center; justify-content: space-between;
+  position: relative; overflow: hidden;
+}
+.rep-hero::before {
+  content:''; position:absolute; top:-80px; right:-40px;
+  width:260px; height:260px; border-radius:50%;
+  background: radial-gradient(circle, rgba(251,191,36,0.13) 0%, transparent 70%);
+  pointer-events:none;
+}
+.rep-hero-left { display:flex; align-items:center; gap:16px; z-index:1; }
+.rep-hero-icon {
+  width:52px; height:52px; border-radius:15px; flex-shrink:0;
+  background: linear-gradient(135deg,#f59e0b,#b45309);
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:0 6px 22px rgba(217,119,6,0.50);
+}
+.rep-hero-text h2 { margin:0 0 4px; font-size:21px; font-weight:800; color:#fcd34d; }
+.rep-hero-text p  { margin:0; color:#a08060; font-size:13px; }
+.rep-hero-badge {
+  z-index:1; flex-shrink:0;
+  background: rgba(251,191,36,0.10); border:1px solid rgba(251,191,36,0.22);
+  border-radius:14px; padding:12px 20px; text-align:center;
+}
+.rep-hero-badge .rb-val { font-size:26px; font-weight:800; color:#fbbf24; font-family:'JetBrains Mono',monospace; display:block; }
+.rep-hero-badge .rb-lbl { font-size:10px; font-weight:700; color:rgba(251,191,36,0.5); text-transform:uppercase; letter-spacing:0.1em; margin-top:2px; display:block; }
+
+/* KPI ROW */
+.rep-kpi-row { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:26px; }
+.rep-kpi {
+  background:var(--white); border:1px solid var(--border); border-radius:16px;
+  padding:20px 22px; position:relative; overflow:hidden;
+  box-shadow:0 2px 12px var(--shadow);
+  transition: transform 0.22s, box-shadow 0.22s, opacity 0.5s, margin-top 0.5s;
+  opacity:0; margin-top:16px;
+}
+.rep-kpi.visible { opacity:1; margin-top:0; }
+.rep-kpi:hover { transform:translateY(-3px); box-shadow:0 8px 28px rgba(120,53,15,0.14); }
+.rep-kpi::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:3px;
+  background: linear-gradient(90deg, var(--amber-400), var(--amber-600));
+  border-radius:16px 16px 0 0;
+}
+.rep-kpi.kpi-green::before { background:linear-gradient(90deg,#10b981,#059669); }
+.rep-kpi.kpi-blue::before  { background:linear-gradient(90deg,#3b82f6,#1d4ed8); }
+.rep-kpi.kpi-red::before   { background:linear-gradient(90deg,#ef4444,#dc2626); }
+.rep-kpi-icon {
+  width:36px; height:36px; border-radius:10px; margin-bottom:12px;
+  display:flex; align-items:center; justify-content:center;
+  background:linear-gradient(135deg,rgba(245,158,11,0.14),rgba(217,119,6,0.08));
+  color:var(--amber-600);
+}
+.rep-kpi.kpi-green .rep-kpi-icon { background:rgba(16,185,129,0.12); color:#059669; }
+.rep-kpi.kpi-blue  .rep-kpi-icon { background:rgba(59,130,246,0.12);  color:#1d4ed8; }
+.rep-kpi.kpi-red   .rep-kpi-icon { background:rgba(239,68,68,0.10);   color:#dc2626; }
+.rep-kpi-val { font-family:'JetBrains Mono',monospace; font-size:24px; font-weight:800; color:var(--text-dark); line-height:1; }
+.rep-kpi-lbl { font-size:11.5px; font-weight:600; color:var(--muted); margin-top:6px; }
+
+/* SECTION LABEL */
+.rep-section-label {
+  display:flex; align-items:center; gap:10px; margin:6px 0 14px;
+  font-size:10.5px; font-weight:800; text-transform:uppercase; letter-spacing:0.12em; color:var(--amber-600);
+}
+.rep-section-label::after { content:''; flex:1; height:1px; background:var(--amber-100); }
+
+/* GRIDS */
+.rep-grid      { display:grid; grid-template-columns:1fr 1fr; gap:18px; margin-bottom:18px; }
+.rep-grid-full { display:grid; grid-template-columns:1fr;     gap:18px; margin-bottom:18px; }
+
+/* CARD */
+.rep-card {
+  background:var(--white); border:1px solid var(--border); border-radius:18px;
+  overflow:hidden; box-shadow:0 2px 14px var(--shadow);
+  transition: opacity 0.5s ease, margin-top 0.5s ease, box-shadow 0.25s;
+  opacity:0; margin-top:18px;
+}
+.rep-card.visible { opacity:1; margin-top:0; }
+.rep-card:hover { box-shadow:0 8px 32px rgba(120,53,15,0.12); }
+
+.rep-card-head {
+  padding:18px 22px 14px; border-bottom:1px solid var(--border);
+  display:flex; align-items:center; gap:12px;
+}
+.rep-card-icon {
+  width:38px; height:38px; border-radius:11px; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center;
+  background:linear-gradient(135deg,rgba(245,158,11,0.14),rgba(217,119,6,0.08));
+  border:1px solid rgba(245,158,11,0.18); color:var(--amber-600);
+}
+.rep-card-icon.ico-green { background:rgba(16,185,129,0.10); border-color:rgba(16,185,129,0.20); color:#059669; }
+.rep-card-icon.ico-blue  { background:rgba(59,130,246,0.10); border-color:rgba(59,130,246,0.20); color:#1d4ed8; }
+.rep-card-icon.ico-red   { background:rgba(239,68,68,0.10);  border-color:rgba(239,68,68,0.20);  color:#dc2626; }
+.rep-card-head-text h3 { font-size:14px; font-weight:700; margin:0; color:var(--text-dark); }
+.rep-card-head-text p  { font-size:11.5px; color:var(--muted); margin:2px 0 0; }
+
+/* TABLE */
+.rep-table { width:100%; border-collapse:collapse; }
+.rep-table thead th {
+  padding:9px 22px; font-size:10px; font-weight:800; text-transform:uppercase;
+  letter-spacing:0.1em; color:var(--amber-600);
+  background:var(--cream); border-bottom:2px solid var(--amber-100); text-align:left;
+}
+.rep-table tbody tr { border-bottom:1px solid var(--border); transition:background 0.15s; }
+.rep-table tbody tr:last-child { border-bottom:none; }
+.rep-table tbody tr:hover { background:var(--cream); }
+.rep-table td { padding:12px 22px; font-size:13.5px; color:var(--text-dark); }
+.td-mono  { font-family:'JetBrains Mono',monospace; font-size:13px; font-weight:600; }
+.td-price { font-family:'JetBrains Mono',monospace; font-size:13px; font-weight:700; color:var(--amber-700); }
+.td-km    { font-family:'JetBrains Mono',monospace; font-size:13px; font-weight:700; color:#059669; }
+.td-total { font-family:'JetBrains Mono',monospace; font-size:15px; font-weight:800; color:var(--amber-700); }
+.rep-table tfoot td { padding:12px 22px; background:linear-gradient(135deg,#fffbeb,#fef3c7); font-weight:800; border-top:2px solid var(--amber-200); }
+
+.placa-chip {
+  display:inline-block; background:var(--cream); border:1px solid var(--amber-200);
+  padding:3px 10px; border-radius:6px; font-family:'JetBrains Mono',monospace;
+  font-size:12px; font-weight:700; color:var(--amber-700); letter-spacing:0.06em;
+}
+.ruta-badge { display:inline-flex; align-items:center; gap:6px; font-size:13.5px; font-weight:700; }
+.ruta-badge .ra { color:var(--amber-400); font-size:15px; }
+
+/* BAR CHART */
+.bar-row { display:flex; align-items:center; gap:12px; padding:11px 22px; border-bottom:1px solid var(--border); }
+.bar-row:last-child { border-bottom:none; }
+.bar-label { font-size:12.5px; font-weight:600; color:var(--text-dark); min-width:100px; }
+.bar-track { flex:1; height:7px; background:var(--cream); border-radius:99px; overflow:hidden; }
+.bar-fill  { height:100%; border-radius:99px; width:0; transition:width 1.1s cubic-bezier(.22,1,.36,1); background:linear-gradient(90deg,#f59e0b,#d97706); }
+.bar-fill.bf-green { background:linear-gradient(90deg,#10b981,#059669); }
+.bar-fill.bf-red   { background:linear-gradient(90deg,#ef4444,#dc2626); }
+.bar-val { font-family:'JetBrains Mono',monospace; font-size:12px; font-weight:700; color:var(--amber-700); min-width:100px; text-align:right; }
+.bar-val.bv-green { color:#059669; }
+.bar-val.bv-red   { color:#dc2626; }
+
+.rep-empty { padding:36px 24px; text-align:center; color:var(--muted); font-size:13px; }
+.rep-empty svg { display:block; margin:0 auto 10px; opacity:0.3; }
+
+.num-badge {
+  display:inline-flex; align-items:center; gap:4px;
+  font-size:12px; font-weight:700; padding:2px 10px; border-radius:99px;
+  background:rgba(59,130,246,0.08); color:#1d4ed8; border:1px solid rgba(59,130,246,0.2);
+}
+.viat-badge {
+  display:inline-flex; align-items:center; gap:4px;
+  font-size:12px; font-weight:700; padding:2px 10px; border-radius:8px;
+  background:var(--cream); border:1px solid var(--amber-200); color:var(--amber-700);
+  font-family:'JetBrains Mono',monospace;
+}
+
+@media (max-width:900px) {
+  .rep-grid { grid-template-columns:1fr; }
+  .rep-kpi-row { grid-template-columns:1fr 1fr; }
+}
+</style>
+
+<!-- HERO -->
+<div class="rep-hero">
+  <div class="rep-hero-left">
+    <div class="rep-hero-icon">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+        <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/>
+        <line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/>
+      </svg>
+    </div>
+    <div class="rep-hero-text">
+      <h2>Reportes Operacionales</h2>
+      <p>Análisis en tiempo real · Métricas clave de tu flota y operación</p>
+    </div>
+  </div>
+  <div class="rep-hero-badge">
+    {% set total_reg = (combustible_promedio|length) + (kilometros|length) + (viaticos_data|length) %}
+    <span class="rb-val">{{ total_reg }}</span>
+    <span class="rb-lbl">Registros activos</span>
+  </div>
+</div>
+
+<!-- KPIs -->
+{% set total_comb = namespace(v=0) %}
+{% for i in combustible_promedio %}{% set total_comb.v = total_comb.v + i.costo_total|float %}{% endfor %}
+{% set total_km_v = namespace(v=0) %}
+{% for i in kilometros %}{% set total_km_v.v = total_km_v.v + i.kilometros_recorridos|float|abs %}{% endfor %}
+{% set total_viat = namespace(v=0) %}
+{% for i in viaticos_data %}{% set total_viat.v = total_viat.v + i.total_viaticos|float %}{% endfor %}
+{% set total_inc = namespace(v=0) %}
+{% for i in incidentes_data %}{% set total_inc.v = total_inc.v + i.total|int %}{% endfor %}
+
+<div class="rep-kpi-row">
+  <div class="rep-kpi" data-delay="0">
+    <div class="rep-kpi-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 22V6a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16M15 8h2a2 2 0 0 1 2 2v2a2 2 0 0 0 2 2v8M3 22h18M7 10h4M7 14h4"/></svg></div>
+    <div class="rep-kpi-val">$ {{ "{:,.0f}".format(total_comb.v).replace(",",".") }}</div>
+    <div class="rep-kpi-lbl">Gasto total combustible</div>
+  </div>
+  <div class="rep-kpi kpi-green" data-delay="70">
+    <div class="rep-kpi-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+    <div class="rep-kpi-val">{{ "{:,.0f}".format(total_km_v.v).replace(",",".") }}</div>
+    <div class="rep-kpi-lbl">Km totales recorridos</div>
+  </div>
+  <div class="rep-kpi kpi-blue" data-delay="140">
+    <div class="rep-kpi-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg></div>
+    <div class="rep-kpi-val">$ {{ "{:,.0f}".format(total_viat.v).replace(",",".") }}</div>
+    <div class="rep-kpi-lbl">Total viáticos pagados</div>
+  </div>
+  <div class="rep-kpi kpi-red" data-delay="210">
+    <div class="rep-kpi-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0zM12 9v4M12 17h.01"/></svg></div>
+    <div class="rep-kpi-val">{{ total_inc.v }}</div>
+    <div class="rep-kpi-lbl">Incidentes reportados</div>
+  </div>
+</div>
+
+<!-- SECTION: Eficiencia de flota -->
+<div class="rep-section-label">
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="1" y="9" width="18" height="9" rx="2"/><path d="M19 13h3l1 4H19"/><circle cx="6" cy="20" r="2"/><circle cx="15" cy="20" r="2"/></svg>
+  Eficiencia de flota
+</div>
+<div class="rep-grid">
+
+  <!-- Combustible por vehículo (barras) -->
+  <div class="rep-card" data-delay="0">
+    <div class="rep-card-head">
+      <div class="rep-card-icon">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 22V6a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16M15 8h2a2 2 0 0 1 2 2v2a2 2 0 0 0 2 2v8M3 22h18M7 10h4M7 14h4"/></svg>
+      </div>
+      <div class="rep-card-head-text">
+        <h3>Combustible por vehículo</h3>
+        <p>Promedio de litros y costo total acumulado</p>
+      </div>
+    </div>
+    {% if combustible_promedio %}
+      {% set mx = namespace(v=1) %}
+      {% for i in combustible_promedio %}{% if i.costo_total|float > mx.v %}{% set mx.v = i.costo_total|float %}{% endif %}{% endfor %}
+      {% for item in combustible_promedio %}
+      <div class="bar-row">
+        <span class="placa-chip">{{ item.placa }}</span>
+        <div class="bar-track"><div class="bar-fill" data-w="{{ [(item.costo_total|float / mx.v * 100)|int, 4]|max }}"></div></div>
+        <div style="text-align:right;min-width:130px;">
+          <div style="font-size:11px;color:var(--muted);font-weight:600;">{{ "%.0f"|format(item.promedio_litros|float) }} L prom.</div>
+          <div class="td-price">$ {{ "{:,.0f}".format(item.costo_total|float).replace(",",".") }}</div>
+        </div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="rep-empty"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 22V6a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16"/></svg>Sin datos de combustible</div>
+    {% endif %}
+  </div>
+
+  <!-- Km por vehículo (barras) -->
+  <div class="rep-card" data-delay="80">
+    <div class="rep-card-head">
+      <div class="rep-card-icon ico-green">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      </div>
+      <div class="rep-card-head-text">
+        <h3>Kilómetros recorridos</h3>
+        <p>Total acumulado por vehículo de la flota</p>
+      </div>
+    </div>
+    {% if kilometros %}
+      {% set mx2 = namespace(v=1) %}
+      {% for i in kilometros %}{% if i.kilometros_recorridos|float|abs > mx2.v %}{% set mx2.v = i.kilometros_recorridos|float|abs %}{% endif %}{% endfor %}
+      {% for item in kilometros %}
+      <div class="bar-row">
+        <span class="placa-chip">{{ item.placa }}</span>
+        <div class="bar-track"><div class="bar-fill bf-green" data-w="{{ [(item.kilometros_recorridos|float|abs / mx2.v * 100)|int, 4]|max }}"></div></div>
+        <div class="bar-val bv-green">{{ "{:,.0f}".format(item.kilometros_recorridos|float|abs).replace(",",".") }} km</div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="rep-empty"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/></svg>Sin datos de kilómetros</div>
+    {% endif %}
+  </div>
+
+</div>
+
+<!-- SECTION: Rutas -->
+<div class="rep-section-label">
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+  Análisis de rutas
+</div>
+<div class="rep-grid-full">
+  <div class="rep-card" data-delay="0">
+    <div class="rep-card-head">
+      <div class="rep-card-icon ico-blue">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      </div>
+      <div class="rep-card-head-text">
+        <h3>Costos totales de operación por ruta</h3>
+        <p>Combustible + viáticos agrupados por origen → destino</p>
+      </div>
+    </div>
+    <table class="rep-table">
+      <thead>
+        <tr><th>Ruta</th><th>Viajes</th><th>Combustible</th><th>Viáticos</th><th>Total operación</th></tr>
+      </thead>
+      <tbody>
+        {% set grand = namespace(v=0) %}
+        {% for item in costos_ruta %}
+        {% set grand.v = grand.v + item.costo_total|float %}
+        <tr>
+          <td><div class="ruta-badge"><strong>{{ item.ciudad_origen }}</strong><span class="ra">→</span><strong>{{ item.ciudad_destino }}</strong></div></td>
+          <td><span class="num-badge">{{ item.total_viajes }} viajes</span></td>
+          <td class="td-price">$ {{ "{:,.0f}".format(item.costo_combustible|float).replace(",",".") }}</td>
+          <td class="td-price">$ {{ "{:,.0f}".format(item.costo_viaticos|float).replace(",",".") }}</td>
+          <td class="td-total">$ {{ "{:,.0f}".format(item.costo_total|float).replace(",",".") }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5" class="rep-empty">Sin datos de rutas disponibles</td></tr>
+        {% endfor %}
+      </tbody>
+      {% if costos_ruta %}
+      <tfoot>
+        <tr>
+          <td colspan="4" style="font-size:11.5px;color:var(--amber-700);font-weight:700;text-transform:uppercase;letter-spacing:0.06em;">Total general</td>
+          <td class="td-total">$ {{ "{:,.0f}".format(grand.v).replace(",",".") }}</td>
+        </tr>
+      </tfoot>
+      {% endif %}
+    </table>
+  </div>
+</div>
+
+<!-- SECTION: Gastos e incidentes -->
+<div class="rep-section-label">
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+  Gastos e incidentes
+</div>
+<div class="rep-grid">
+
+  <!-- Viáticos -->
+  <div class="rep-card" data-delay="0">
+    <div class="rep-card-head">
+      <div class="rep-card-icon ico-blue">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+      </div>
+      <div class="rep-card-head-text">
+        <h3>Viáticos por viaje</h3>
+        <p>Monto total de viáticos registrados</p>
+      </div>
+    </div>
+    <table class="rep-table">
+      <thead><tr><th>Viaje</th><th>Total viáticos</th></tr></thead>
+      <tbody>
+        {% for item in viaticos_data %}
+        <tr>
+          <td><span class="viat-badge"># {{ item.viaje_id }}</span></td>
+          <td class="td-price">$ {{ "{:,.0f}".format(item.total_viaticos|float).replace(",",".") }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="2" class="rep-empty">Sin viáticos registrados</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Incidentes (barras) -->
+  <div class="rep-card" data-delay="80">
+    <div class="rep-card-head">
+      <div class="rep-card-icon ico-red">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0zM12 9v4M12 17h.01"/></svg>
+      </div>
+      <div class="rep-card-head-text">
+        <h3>Frecuencia de incidentes</h3>
+        <p>Tipos de incidentes más reportados</p>
+      </div>
+    </div>
+    {% if incidentes_data %}
+      {% set mxi = namespace(v=1) %}
+      {% for i in incidentes_data %}{% if i.total|int > mxi.v %}{% set mxi.v = i.total|int %}{% endif %}{% endfor %}
+      {% for item in incidentes_data %}
+      <div class="bar-row">
+        <span class="bar-label">{{ item.tipo_incidente }}</span>
+        <div class="bar-track"><div class="bar-fill bf-red" data-w="{{ [(item.total|int / mxi.v * 100)|int, 4]|max }}"></div></div>
+        <div class="bar-val bv-red">{{ item.total }}</div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="rep-empty"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>Sin incidentes registrados</div>
+    {% endif %}
+  </div>
+
+</div>
+
+<script>
+// Entrada escalonada para KPIs y cards
+document.querySelectorAll('.rep-kpi, .rep-card').forEach(el => {
+  const delay = parseInt(el.dataset.delay || 0);
+  setTimeout(() => el.classList.add('visible'), 80 + delay);
+});
+
+// Animación de barras
+setTimeout(() => {
+  document.querySelectorAll('.bar-fill[data-w]').forEach(bar => {
+    bar.style.width = bar.dataset.w + '%';
+  });
+}, 350);
+</script>
+
+{% endblock %}

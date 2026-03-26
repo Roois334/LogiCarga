@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}LogiCarga{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    {% if current_user and request.endpoint != 'login' %}
+    <!-- ═══ TOPBAR ═══════════════════════════════════════════════════ -->
+    <header class="topbar">
+        <div class="topbar-left">
+            <a href="{{ url_for('welcome') }}" class="topbar-logo-btn" title="Ir al inicio">
+                <div style="width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,#f59e0b,#b45309);display:flex;align-items:center;justify-content:center;box-shadow:0 3px 12px rgba(217,119,6,0.4);flex-shrink:0;">
+                  <svg width="22" height="18" viewBox="0 0 72 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="2" y="22" width="40" height="28" rx="5" fill="url(#tcab)"/>
+                    <rect x="6" y="10" width="28" height="14" rx="4" fill="url(#troof)"/>
+                    <rect x="8" y="12" width="22" height="10" rx="3" fill="url(#tglass)"/>
+                    <rect x="9" y="13" width="8" height="3" rx="1.5" fill="rgba(255,255,255,0.45)"/>
+                    <rect x="42" y="18" width="28" height="32" rx="4" fill="url(#ttrailer)"/>
+                    <rect x="42" y="28" width="28" height="2.5" fill="url(#tstripe)"/>
+                    <rect x="14" y="27" width="10" height="8" rx="2" fill="url(#twin)"/>
+                    <circle cx="16" cy="52" r="7" fill="#1a0e06"/><circle cx="16" cy="52" r="3" fill="url(#twheel)"/><circle cx="16" cy="52" r="1.2" fill="#fbbf24"/>
+                    <circle cx="52" cy="52" r="7" fill="#1a0e06"/><circle cx="52" cy="52" r="3" fill="url(#twheel)"/><circle cx="52" cy="52" r="1.2" fill="#fbbf24"/>
+                    <rect x="2" y="28" width="4" height="6" rx="1.5" fill="url(#thead)"/>
+                    <defs>
+                      <linearGradient id="tcab" x1="2" y1="22" x2="42" y2="50" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#f59e0b"/><stop offset="100%" stop-color="#b45309"/></linearGradient>
+                      <linearGradient id="troof" x1="6" y1="10" x2="34" y2="24" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#fbbf24"/><stop offset="100%" stop-color="#d97706"/></linearGradient>
+                      <linearGradient id="tglass" x1="8" y1="12" x2="30" y2="22" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#bfdbfe" stop-opacity="0.95"/><stop offset="100%" stop-color="#60a5fa" stop-opacity="0.7"/></linearGradient>
+                      <linearGradient id="ttrailer" x1="42" y1="18" x2="70" y2="50" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#d97706"/><stop offset="100%" stop-color="#92400e"/></linearGradient>
+                      <linearGradient id="tstripe" x1="42" y1="28" x2="70" y2="31" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#fcd34d"/><stop offset="100%" stop-color="#f59e0b"/></linearGradient>
+                      <linearGradient id="twin" x1="14" y1="27" x2="24" y2="35" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#93c5fd" stop-opacity="0.9"/><stop offset="100%" stop-color="#3b82f6" stop-opacity="0.6"/></linearGradient>
+                      <radialGradient id="twheel" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#6b4400"/><stop offset="100%" stop-color="#3d2600"/></radialGradient>
+                      <linearGradient id="thead" x1="2" y1="28" x2="6" y2="34" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#fef9c3"/><stop offset="100%" stop-color="#fbbf24"/></linearGradient>
+                    </defs>
+                  </svg>
+                </div>
+                <span class="topbar-wordmark">LogiCarga</span>
+                <span class="topbar-back-chip">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+                    Inicio
+                </span>
+            </a>
+        </div>
+        <div class="topbar-center">
+            <span class="topbar-page-label">{% block page_title %}{% endblock %}</span>
+        </div>
+        <div class="topbar-right">
+        </div>
+    </header>
+
+    <!-- ═══ SIDEBAR ═══════════════════════════════════════════════════ -->
+    <aside class="sidebar">
+        <div class="brand">
+            <a href="{{ url_for('welcome') }}" class="brand-logo-link">
+              <div style="width:42px;height:42px;border-radius:13px;background:linear-gradient(135deg,#f59e0b,#b45309);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(217,119,6,0.45);flex-shrink:0;">
+                <svg width="26" height="22" viewBox="0 0 72 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect x="2" y="22" width="40" height="28" rx="5" fill="url(#scab)"/>
+                  <rect x="6" y="10" width="28" height="14" rx="4" fill="url(#sroof)"/>
+                  <rect x="8" y="12" width="22" height="10" rx="3" fill="url(#sglass)"/>
+                  <rect x="9" y="13" width="8" height="3" rx="1.5" fill="rgba(255,255,255,0.45)"/>
+                  <rect x="42" y="18" width="28" height="32" rx="4" fill="url(#strailer)"/>
+                  <rect x="42" y="28" width="28" height="2.5" fill="url(#sstripe)"/>
+                  <rect x="14" y="27" width="10" height="8" rx="2" fill="url(#swin)"/>
+                  <rect x="15" y="28" width="4" height="2" rx="1" fill="rgba(255,255,255,0.35)"/>
+                  <circle cx="16" cy="52" r="7" fill="#1a0e06"/><circle cx="16" cy="52" r="5" fill="#2a1a0a"/><circle cx="16" cy="52" r="3" fill="url(#swheel)"/><circle cx="16" cy="52" r="1.2" fill="#fbbf24"/>
+                  <circle cx="52" cy="52" r="7" fill="#1a0e06"/><circle cx="52" cy="52" r="5" fill="#2a1a0a"/><circle cx="52" cy="52" r="3" fill="url(#swheel)"/><circle cx="52" cy="52" r="1.2" fill="#fbbf24"/>
+                  <rect x="2" y="28" width="4" height="6" rx="1.5" fill="url(#shead)"/>
+                  <rect x="66" y="26" width="4" height="5" rx="1.5" fill="url(#stail)"/>
+                  <defs>
+                    <linearGradient id="scab" x1="2" y1="22" x2="42" y2="50" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#f59e0b"/><stop offset="100%" stop-color="#b45309"/></linearGradient>
+                    <linearGradient id="sroof" x1="6" y1="10" x2="34" y2="24" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#fbbf24"/><stop offset="100%" stop-color="#d97706"/></linearGradient>
+                    <linearGradient id="sglass" x1="8" y1="12" x2="30" y2="22" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#bfdbfe" stop-opacity="0.95"/><stop offset="100%" stop-color="#60a5fa" stop-opacity="0.7"/></linearGradient>
+                    <linearGradient id="strailer" x1="42" y1="18" x2="70" y2="50" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#d97706"/><stop offset="100%" stop-color="#92400e"/></linearGradient>
+                    <linearGradient id="sstripe" x1="42" y1="28" x2="70" y2="31" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#fcd34d"/><stop offset="100%" stop-color="#f59e0b"/></linearGradient>
+                    <linearGradient id="swin" x1="14" y1="27" x2="24" y2="35" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#93c5fd" stop-opacity="0.9"/><stop offset="100%" stop-color="#3b82f6" stop-opacity="0.6"/></linearGradient>
+                    <radialGradient id="swheel" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#6b4400"/><stop offset="100%" stop-color="#3d2600"/></radialGradient>
+                    <linearGradient id="shead" x1="2" y1="28" x2="6" y2="34" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#fef9c3"/><stop offset="100%" stop-color="#fbbf24"/></linearGradient>
+                    <linearGradient id="stail" x1="66" y1="26" x2="70" y2="31" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#fca5a5"/><stop offset="100%" stop-color="#ef4444"/></linearGradient>
+                  </defs>
+                </svg>
+              </div>
+              <div class="brand-text">
+                <h1>LogiCarga</h1>
+                <p>Sistema de gestión de flota</p>
+              </div>
+            </a>
+        </div>
+        <nav>
+            <a href="{{ url_for('dashboard') }}" class="nav-item {% if request.endpoint == 'dashboard' %}active{% endif %}">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
+                Dashboard
+            </a>
+            {% if 'usuarios' in permissions %}
+            <a href="{{ url_for('usuarios') }}" class="nav-item {% if request.endpoint == 'usuarios' %}active{% endif %}">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><path d="M16 3.13a4 4 0 0 1 0 7.75M21 21v-2a4 4 0 0 0-3-3.85"/></svg>
+                Usuarios
+            </a>{% endif %}
+
+            {% if 'vehiculos' in permissions %}
+            <a href="{{ url_for('vehiculos') }}" class="nav-item {% if request.endpoint == 'vehiculos' %}active{% endif %}">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="9" width="18" height="9" rx="2"/><path d="M19 13h3l1 4H19"/><circle cx="6" cy="20" r="2"/><circle cx="15" cy="20" r="2"/><path d="M1 9l3-6h12l2 6"/></svg>
+                Vehículos
+            </a>{% endif %}
+            {% if 'conductores' in permissions %}
+            <a href="{{ url_for('conductores') }}" class="nav-item {% if request.endpoint == 'conductores' %}active{% endif %}">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><path d="M16 3.13a4 4 0 0 1 0 7.75M21 21v-2a4 4 0 0 0-3-3.85"/></svg>
+                Conductores
+            </a>{% endif %}
+            {% if 'viajes' in permissions %}
+            <a href="{{ url_for('viajes') }}" class="nav-item {% if request.endpoint == 'viajes' %}active{% endif %}">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+                Viajes
+            </a>{% endif %}
+            {% if 'mis_viajes' in permissions %}
+            <a href="{{ url_for('mis_viajes') }}" class="nav-item {% if request.endpoint == 'mis_viajes' %}active{% endif %}">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 17H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v3"/><path d="M13 21l9-9-3-3-9 9v3h3z"/></svg>
+                Mis Viajes
+            </a>{% endif %}
+            {% if 'combustible' in permissions %}
+            <a href="{{ url_for('combustible') }}" class="nav-item {% if request.endpoint == 'combustible' %}active{% endif %}">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 22V6a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16M15 8h2a2 2 0 0 1 2 2v2a2 2 0 0 0 2 2v8M3 22h18M7 10h4M7 14h4"/></svg>
+                Combustible
+            </a>{% endif %}
+            {% if 'viaticos' in permissions %}
+            <a href="{{ url_for('viaticos') }}" class="nav-item {% if request.endpoint == 'viaticos' %}active{% endif %}">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+                Viáticos
+            </a>{% endif %}
+            {% if 'incidentes' in permissions %}
+            <a href="{{ url_for('incidentes') }}" class="nav-item {% if request.endpoint == 'incidentes' %}active{% endif %}">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0zM12 9v4M12 17h.01"/></svg>
+                Incidentes
+            </a>{% endif %}
+            {% if 'mantenimientos' in permissions %}
+            <a href="{{ url_for('mantenimientos') }}" class="nav-item {% if request.endpoint == 'mantenimientos' %}active{% endif %}">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+                Mantenimientos
+            </a>{% endif %}
+            {% if 'reportes' in permissions %}
+            <a href="{{ url_for('reportes') }}" class="nav-item {% if request.endpoint == 'reportes' %}active{% endif %}">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                Reportes
+            </a>{% endif %}
+            {% if 'consultas' in permissions %}
+            <a href="{{ url_for('consultas') }}" class="nav-item {% if request.endpoint == 'consultas' %}active{% endif %}">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                Consultas
+            </a>{% endif %}
+            {% if 'metodologia' in permissions %}
+            <a href="{{ url_for('metodologia') }}" class="nav-item {% if request.endpoint == 'metodologia' %}active{% endif %}">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+                Metodología Espiral
+            </a>{% endif %}
+
+        </nav>
+        <div class="sidebar-footer">
+            <div class="sf-user" id="sfUserTrigger">
+                <div class="sf-avatar">{{ current_user.nombre[0] | upper }}</div>
+                <div class="sf-info">
+                    <div class="sf-name">{{ current_user.nombre }}</div>
+                    <small>{{ current_user.rol }}</small>
+                </div>
+                <svg class="sf-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 15l-6-6-6 6"/></svg>
+                <!-- Hover popup card -->
+                <div class="sf-hover-card" id="sfHoverCard">
+                    <div class="sfhc-top">
+                        <div class="sfhc-avatar">{{ current_user.nombre[0] | upper }}</div>
+                        <div>
+                            <div class="sfhc-name">{{ current_user.nombre }}</div>
+                            <div class="sfhc-role">{{ current_user.rol }}</div>
+                        </div>
+                    </div>
+                    <div class="sfhc-divider"></div>
+                    <a href="{{ url_for('perfil') }}" class="sfhc-btn sfhc-btn-perfil">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+                        Ver mi perfil
+                    </a>
+                    <a href="{{ url_for('logout') }}" class="sfhc-btn sfhc-btn-logout">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                        Cerrar sesión
+                    </a>
+                </div>
+            </div>
+
+        </div>
+    </aside>
+    {% endif %}
+
+    <main class="{% if current_user and request.endpoint != 'login' %}main-layout{% else %}full-layout{% endif %}">
+        {% if current_user %}
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-container">
+                    {% for category, message in messages %}
+                        <div class="flash {{ category }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+        {% endif %}
+        {% block content %}{% endblock %}
+    </main>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+{% block title %}Vehículos | LogiCarga{% endblock %}
+{% block content %}
+
+<style>
+.anio-chip {
+  display: inline-block;
+  background: var(--cream); border: 1px solid var(--amber-200);
+  padding: 2px 9px; border-radius: 5px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px; font-weight: 700; color: var(--amber-700);
+}
+.cap-chip {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px; font-weight: 600; color: #059669;
+}
+</style>
+
+<section class="page-header">
+  <h2>Vehículos</h2>
+  <p>Registro y control de la flota de camiones.</p>
+</section>
+
+<section class="card">
+  <h3>Nuevo vehículo</h3>
+  <form method="post" class="grid-form">
+
+    <label>Placa
+      <input name="placa" placeholder="Ej: TRK-123" required>
+    </label>
+
+    <label>Modelo
+      <input name="modelo" placeholder="Ej: Kenworth T800" required>
+    </label>
+
+    <label>Año del vehículo
+      <input type="number" name="anio" min="1990" max="2030"
+             placeholder="Ej: 2019">
+    </label>
+
+    <label>Capacidad de carga (toneladas)
+      <input type="number" step="0.01" name="capacidad_carga"
+             placeholder="Ej: 20.5" required>
+    </label>
+
+    <label>Kilometraje actual (km)
+      <input type="number" name="kilometraje_actual"
+             placeholder="Ej: 85000" required>
+    </label>
+
+    <label>Estado
+      <select name="estado">
+        <option>Disponible</option>
+        <option>En ruta</option>
+        <option>En mantenimiento</option>
+        <option>Fuera de servicio</option>
+      </select>
+    </label>
+
+    <label>Fecha último mantenimiento
+      <input type="date" name="fecha_ultimo_mantenimiento">
+    </label>
+
+    <div class="form-actions"><button type="submit">Guardar vehículo</button></div>
+  </form>
+</section>
+
+<section class="card">
+  <h3>Listado de vehículos</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Placa</th>
+        <th>Modelo</th>
+        <th>Año</th>
+        <th>Capacidad</th>
+        <th>Kilometraje</th>
+        <th>Último mant.</th>
+        <th>Estado</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in items %}
+      <tr>
+        <td>{{ item.id }}</td>
+        <td><strong>{{ item.placa }}</strong></td>
+        <td>{{ item.modelo }}</td>
+        <td>
+          {% if item.anio %}
+            <span class="anio-chip">{{ item.anio }}</span>
+          {% else %}
+            <span style="color:var(--muted);font-size:12px;">—</span>
+          {% endif %}
+        </td>
+        <td><span class="cap-chip">{{ item.capacidad_carga }} t</span></td>
+        <td>{{ "{:,.0f}".format(item.kilometraje_actual|float).replace(",",".") }} km</td>
+        <td>
+          {% if item.fecha_ultimo_mantenimiento %}
+            {{ item.fecha_ultimo_mantenimiento | fecha_es }}
+          {% else %}
+            <span style="color:var(--muted);font-size:12px;">—</span>
+          {% endif %}
+        </td>
+        <td>{{ item.estado }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="8" style="text-align:center;color:var(--muted);padding:24px;">Sin vehículos registrados</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+
+{% endblock %}

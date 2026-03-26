@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+{% block title %}Combustible | LogiCarga{% endblock %}
+{% block content %}
+
+<style>
+.fuel-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 10px; border-radius: 99px;
+  font-size: 11px; font-weight: 700; border: 1px solid;
+}
+.fuel-diesel  { background: rgba(30,64,175,0.08); color: #1e40af; border-color: rgba(30,64,175,0.22); }
+.fuel-corriente{ background: rgba(5,150,105,0.08); color: #065f46; border-color: rgba(5,150,105,0.22); }
+.fuel-extra   { background: rgba(124,58,237,0.08); color: #5b21b6; border-color: rgba(124,58,237,0.22); }
+.fuel-gas     { background: rgba(245,158,11,0.10); color: #92400e; border-color: rgba(245,158,11,0.28); }
+</style>
+
+<section class="page-header">
+  <h2>Combustible</h2>
+  <p>Registro de cargas de combustible por viaje.</p>
+</section>
+
+<section class="card">
+  <h3>Nuevo registro de combustible</h3>
+  <form method="post" class="grid-form">
+
+    <label>Viaje
+      <select name="viaje_id">
+        {% for item in viajes %}
+        <option value="{{ item.id }}">#{{ item.id }} — {{ item.ciudad_origen }} → {{ item.ciudad_destino }}</option>
+        {% endfor %}
+      </select>
+    </label>
+
+    <label>Vehículo
+      <select name="vehiculo_id">
+        {% for item in vehiculos %}
+        <option value="{{ item.id }}">{{ item.placa }}</option>
+        {% endfor %}
+      </select>
+    </label>
+
+    <label>Conductor
+      <select name="conductor_id">
+        {% for item in conductores %}
+        <option value="{{ item.id }}">{{ item.nombre_completo }}</option>
+        {% endfor %}
+      </select>
+    </label>
+
+    <label>Tipo de combustible
+      <select name="tipo_combustible">
+        <option value="Diésel">Diésel</option>
+        <option value="Corriente">Corriente</option>
+        <option value="Extra">Extra</option>
+        <option value="Gas Natural">Gas Natural</option>
+      </select>
+    </label>
+
+    <label>Litros cargados
+      <input type="number" step="0.01" name="litros" placeholder="Ej: 120.50" required>
+    </label>
+
+    <label>Costo total ($)
+      <input type="number" step="0.01" name="costo_total" placeholder="Ej: 450000" required>
+    </label>
+
+    <label>Ciudad de carga
+      <input name="ciudad" placeholder="Ej: Medellín" required>
+    </label>
+
+    <label>Fecha y hora
+      <input type="datetime-local" name="fecha_registro" required>
+    </label>
+
+    <label class="full-width">Observaciones
+      <textarea name="observaciones" placeholder="Opcional..."></textarea>
+    </label>
+
+    <div class="form-actions"><button type="submit">Guardar registro</button></div>
+  </form>
+</section>
+
+<section class="card">
+  <h3>Historial de cargas</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Viaje</th>
+        <th>Vehículo</th>
+        <th>Conductor</th>
+        <th>Tipo</th>
+        <th>Litros</th>
+        <th>Costo</th>
+        <th>Ciudad</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in items %}
+      <tr>
+        <td>{{ item.id }}</td>
+        <td>{{ item.ciudad_origen }} → {{ item.ciudad_destino }}</td>
+        <td><strong>{{ item.placa }}</strong></td>
+        <td>{{ item.conductor }}</td>
+        <td>
+          {% set tc = item.tipo_combustible or 'Diésel' %}
+          {% if tc == 'Diésel' %}
+            <span class="fuel-badge fuel-diesel">Diésel</span>
+          {% elif tc == 'Corriente' %}
+            <span class="fuel-badge fuel-corriente">Corriente</span>
+          {% elif tc == 'Extra' %}
+            <span class="fuel-badge fuel-extra">Extra</span>
+          {% else %}
+            <span class="fuel-badge fuel-gas">Gas Natural</span>
+          {% endif %}
+        </td>
+        <td>{{ item.litros }} L</td>
+        <td>$ {{ "{:,.0f}".format(item.costo_total|float).replace(",",".") }}</td>
+        <td>{{ item.ciudad }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="8" style="text-align:center;color:var(--muted);padding:24px;">Sin registros de combustible</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+
+{% endblock %}

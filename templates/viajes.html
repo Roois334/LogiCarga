@@ -1,0 +1,724 @@
+{% extends 'base.html' %}
+{% block title %}Viajes | LogiCarga{% endblock %}
+{% block content %}
+
+<style>
+/* ══════════════════════════════════════════════════
+   VIAJES — Supervisor — Formulario simplificado
+══════════════════════════════════════════════════ */
+.viaj-hero {
+  display: flex; align-items: center; gap: 16px;
+  background: linear-gradient(135deg, var(--amber-800) 0%, var(--amber-600) 60%, var(--amber-500) 100%);
+  border-radius: 18px; padding: 22px 28px; margin-bottom: 24px;
+  box-shadow: 0 8px 32px rgba(120,53,15,0.20); position: relative; overflow: hidden;
+}
+.viaj-hero::before {
+  content: ''; position: absolute; right: -30px; top: -30px;
+  width: 140px; height: 140px; border-radius: 50%; background: rgba(255,255,255,0.07);
+}
+.viaj-hero-icon {
+  width: 52px; height: 52px; border-radius: 15px; flex-shrink: 0;
+  background: rgba(255,255,255,0.15);
+  display: flex; align-items: center; justify-content: center;
+  border: 1.5px solid rgba(255,255,255,0.20);
+}
+.viaj-hero-text h2 { margin: 0 0 3px; font-size: 20px; font-weight: 800; color: #fff; }
+.viaj-hero-text p  { margin: 0; font-size: 13px; color: rgba(255,255,255,0.78); }
+
+.flash-msg {
+  padding: 12px 18px; border-radius: 12px; font-size: 13px; font-weight: 600;
+  margin-bottom: 16px; display: flex; align-items: center; gap: 10px;
+}
+.flash-success { background: var(--success-bg); color: var(--success-text); border: 1px solid #a7f3d0; }
+.flash-error   { background: var(--error-bg);   color: var(--error-text);   border: 1px solid #fecdd3; }
+
+/* ── INFO BANNER ── */
+.viaj-info-banner {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 14px 18px;
+  background: linear-gradient(135deg, #fffbeb, #fef3c7);
+  border: 1.5px solid var(--amber-200); border-radius: 13px;
+  margin-bottom: 20px; font-size: 13px; color: var(--amber-800); line-height: 1.5;
+}
+.viaj-info-banner strong { display: block; font-size: 13px; margin-bottom: 2px; }
+
+/* ── FORM CARD ── */
+.viaj-form-card {
+  background: #fff; border-radius: 18px;
+  border: 1.5px solid var(--border);
+  box-shadow: 0 4px 24px var(--shadow);
+  margin-bottom: 24px; overflow: hidden;
+}
+.viaj-form-header {
+  padding: 18px 24px 16px;
+  border-bottom: 1.5px solid var(--amber-100);
+  display: flex; align-items: center; gap: 12px;
+}
+.viaj-form-header-icon {
+  width: 36px; height: 36px; border-radius: 10px;
+  background: linear-gradient(135deg, var(--amber-100), var(--amber-200));
+  display: flex; align-items: center; justify-content: center;
+}
+.viaj-form-header h3 { margin: 0; font-size: 15px; font-weight: 800; color: var(--amber-800); }
+.viaj-form-header p  { margin: 2px 0 0; font-size: 12px; color: var(--muted); }
+.viaj-form-body { padding: 20px 24px 24px; }
+
+.viaj-section-label {
+  font-size: 10.5px; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 0.10em; color: var(--amber-600);
+  margin: 0 0 12px; display: flex; align-items: center; gap: 8px;
+}
+.viaj-section-label::after { content: ''; flex: 1; height: 1px; background: var(--amber-100); }
+.viaj-section-label + .viaj-grid { margin-bottom: 18px; }
+
+.viaj-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 18px; }
+.viaj-field { display: flex; flex-direction: column; gap: 5px; font-size: 12.5px; font-weight: 600; color: var(--text-mid); }
+.viaj-field.full { grid-column: 1 / -1; }
+.viaj-field input,
+.viaj-field select,
+.viaj-field textarea {
+  padding: 9px 12px; border-radius: 10px;
+  border: 1.5px solid var(--border);
+  font-size: 13px; font-family: inherit;
+  background: var(--off-white); color: var(--text);
+  transition: border-color 0.18s, box-shadow 0.18s; outline: none;
+}
+.viaj-field input:focus,
+.viaj-field select:focus,
+.viaj-field textarea:focus {
+  border-color: var(--amber-400);
+  box-shadow: 0 0 0 3px rgba(245,158,11,0.12);
+  background: #fff;
+}
+.viaj-field input::placeholder { color: var(--muted); }
+.viaj-field textarea { resize: vertical; min-height: 70px; }
+.viaj-field .field-hint { font-size: 11px; color: var(--muted); font-weight: 400; margin-top: 2px; }
+.req { color: #ef4444; margin-left: 2px; }
+
+/* Campo de solo lectura (predeterminado) */
+.viaj-field input[readonly],
+.viaj-field .field-readonly {
+  background: var(--cream); color: var(--muted); cursor: default;
+}
+
+/* Badge estado predeterminado */
+.estado-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 14px; border-radius: 10px;
+  background: linear-gradient(135deg,#dbeafe,#bfdbfe);
+  border: 1.5px solid #93c5fd; color: #1e40af;
+  font-size: 13px; font-weight: 700; width: fit-content;
+}
+
+.viaj-actions {
+  display: flex; justify-content: flex-end; gap: 10px;
+  padding-top: 16px; border-top: 1.5px solid var(--amber-100);
+}
+.btn-reset-viaj {
+  padding: 10px 20px; border-radius: 11px;
+  border: 1.5px solid var(--border); background: #fff;
+  font-size: 13px; font-weight: 700; color: var(--text-mid);
+  cursor: pointer; transition: all 0.18s;
+}
+.btn-reset-viaj:hover { border-color: var(--amber-300); color: var(--amber-700); }
+.btn-crear-viaje {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 24px; border-radius: 11px; border: none;
+  background: linear-gradient(135deg, var(--amber-600), var(--amber-500));
+  color: #fff; font-size: 13px; font-weight: 800;
+  cursor: pointer; box-shadow: 0 4px 14px rgba(217,119,6,0.35); transition: all 0.2s;
+}
+.btn-crear-viaje:hover { transform: translateY(-1px); box-shadow: 0 8px 22px rgba(217,119,6,0.45); }
+
+/* ── TABLA ── */
+.viaj-list-card {
+  background: #fff; border-radius: 18px;
+  border: 1.5px solid var(--border);
+  box-shadow: 0 4px 24px var(--shadow); overflow: hidden;
+}
+.viaj-list-header {
+  padding: 18px 24px 16px;
+  border-bottom: 1.5px solid var(--amber-100);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.viaj-list-header h3 { margin: 0; font-size: 15px; font-weight: 800; color: var(--amber-800); }
+.viaj-count {
+  background: linear-gradient(135deg, var(--amber-100), var(--amber-200));
+  color: var(--amber-800); font-size: 11px; font-weight: 800;
+  padding: 3px 10px; border-radius: 20px; border: 1px solid var(--amber-300);
+}
+
+.viaj-table-wrap { overflow-x: auto; }
+.viaj-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.viaj-table thead tr {
+  background: linear-gradient(90deg, var(--cream), var(--amber-50));
+  border-bottom: 1.5px solid var(--amber-100);
+}
+.viaj-table th {
+  padding: 11px 14px; text-align: left;
+  font-size: 10.5px; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--amber-700); white-space: nowrap;
+}
+.viaj-table tbody tr { border-bottom: 1px solid var(--amber-50); transition: background 0.14s; }
+.viaj-table tbody tr:hover { background: var(--cream); }
+.viaj-table tbody tr:last-child { border-bottom: none; }
+.viaj-table td { padding: 11px 14px; vertical-align: middle; }
+
+.est-pill {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700;
+}
+.est-programado { background:#dbeafe; color:#1e40af; border:1px solid #93c5fd; }
+.est-en-ruta    { background:#d1fae5; color:#065f46; border:1px solid #6ee7b7; }
+.est-finalizado { background:#f3f4f6; color:#374151; border:1px solid #d1d5db; }
+.est-cancelado  { background:#fef2f2; color:#991b1b; border:1px solid #fecdd3; }
+
+.viaj-empty { padding: 48px 24px; text-align: center; color: var(--muted); }
+.viaj-empty p { font-size: 14px; margin: 8px 0 0; }
+
+/* Error de validación */
+.field-error { border-color: #ef4444 !important; box-shadow: 0 0 0 3px rgba(239,68,68,0.12) !important; }
+.error-msg { color: #ef4444; font-size: 11px; font-weight: 600; margin-top: 3px; display: none; }
+.error-msg.show { display: block; }
+
+@media (max-width: 768px) {
+  .viaj-grid { grid-template-columns: 1fr; }
+  .viaj-field.full { grid-column: 1; }
+}
+</style>
+
+<!-- HERO -->
+<div class="viaj-hero">
+  <div class="viaj-hero-icon">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+      <rect x="1" y="9" width="18" height="9" rx="2"/><path d="M19 13h3l1 4H19"/>
+      <circle cx="6" cy="20" r="2"/><circle cx="15" cy="20" r="2"/><path d="M1 9l3-6h12l2 6"/>
+    </svg>
+  </div>
+  <div class="viaj-hero-text">
+    <h2>Viajes</h2>
+    <p>Planeación y programación de rutas operativas</p>
+  </div>
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% for category, message in messages %}
+    <div class="flash-msg flash-{{ category }}">
+      {% if category == 'success' %}
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      {% else %}
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      {% endif %}
+      {{ message }}
+    </div>
+  {% endfor %}
+{% endwith %}
+
+<!-- AVISO INFORMATIVO -->
+<div class="viaj-info-banner">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--amber-600)" stroke-width="2" style="flex-shrink:0;margin-top:1px;">
+    <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+  </svg>
+  <div>
+    <strong>¿Cómo funciona el registro de viajes?</strong>
+    Tú como supervisor programas el viaje con la ruta, vehículo, conductor y fecha de salida.
+    El conductor es quien <b>inicia</b> el viaje registrando el odómetro y combustible, y al llegar
+    lo <b>finaliza</b> con los datos de llegada. El estado avanza automáticamente.
+  </div>
+</div>
+
+<!-- FORMULARIO -->
+<div class="viaj-form-card">
+  <div class="viaj-form-header">
+    <div class="viaj-form-header-icon">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--amber-700)" stroke-width="2.2">
+        <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/>
+        <line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+      </svg>
+    </div>
+    <div>
+      <h3>Programar nuevo viaje</h3>
+      <p>Completa solo la información de planeación — el conductor completará el resto</p>
+    </div>
+  </div>
+  <div class="viaj-form-body">
+    <form method="post" id="formViaje">
+      <!-- Campos ocultos con valores predeterminados que el conductor completa -->
+      <input type="hidden" name="fecha_llegada"      value="">
+      <input type="hidden" name="kilometraje_inicio" value="0">
+      <input type="hidden" name="kilometraje_fin"    value="">
+      <input type="hidden" name="combustible_inicio" value="0">
+      <input type="hidden" name="combustible_fin"    value="">
+      <input type="hidden" name="estado"             value="Programado">
+
+      <!-- ASIGNACIÓN -->
+      <div class="viaj-section-label">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="1" y="9" width="18" height="9" rx="2"/><path d="M19 13h3l1 4H19"/><circle cx="6" cy="20" r="2"/><circle cx="15" cy="20" r="2"/></svg>
+        Asignación de vehículo y conductor
+      </div>
+      <div class="viaj-grid">
+        <div class="viaj-field">
+          <label>Vehículo <span class="req">*</span></label>
+          <select name="vehiculo_id" required>
+            <option value="">— Seleccionar vehículo —</option>
+            {% for item in vehiculos %}
+            <option value="{{ item.id }}">{{ item.placa }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="viaj-field">
+          <label>Conductor <span class="req">*</span></label>
+          <select name="conductor_id" required>
+            <option value="">— Seleccionar conductor —</option>
+            {% for item in conductores %}
+            <option value="{{ item.id }}">{{ item.nombre_completo }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <!-- RUTA -->
+      <div class="viaj-section-label">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 12h18M3 6l9-3 9 3M3 18l9 3 9-3"/></svg>
+        Ruta y tipo de carga
+      </div>
+      <div class="viaj-grid">
+        <div class="viaj-field">
+          <label>Ciudad de origen <span class="req">*</span></label>
+          <input name="ciudad_origen" placeholder="Ej: Medellín" required>
+        </div>
+        <div class="viaj-field">
+          <label>Ciudad de destino <span class="req">*</span></label>
+          <input name="ciudad_destino" placeholder="Ej: Bogotá" required>
+        </div>
+        <div class="viaj-field full">
+          <label>Tipo de carga <span class="req">*</span></label>
+          <input name="tipo_carga" placeholder="Ej: Repuestos, Alimentos, Materiales de construcción…" required>
+        </div>
+      </div>
+
+      <!-- FECHA -->
+      <div class="viaj-section-label">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Fecha de salida programada
+      </div>
+      <div class="viaj-grid">
+        <div class="viaj-field">
+          <label>Fecha y hora de salida <span class="req">*</span></label>
+          <input type="datetime-local" name="fecha_salida" id="fechaSalida" required>
+          <span class="field-hint">No puede ser una fecha anterior a hoy</span>
+          <span class="error-msg" id="errFecha">⚠ La fecha de salida no puede ser en el pasado</span>
+        </div>
+        <div class="viaj-field">
+          <label>Estado del viaje</label>
+          <div class="estado-badge">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            Programado (automático)
+          </div>
+          <span class="field-hint">El estado lo gestiona el conductor al iniciar y finalizar</span>
+        </div>
+      </div>
+
+      <!-- OBSERVACIONES -->
+      <div class="viaj-section-label">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5l3 3L12 15l-4 1 1-4z"/></svg>
+        Instrucciones y observaciones
+      </div>
+      <div class="viaj-grid">
+        <div class="viaj-field full">
+          <label>Observaciones para el conductor</label>
+          <textarea name="observaciones" placeholder="Instrucciones especiales, precauciones con la carga, contacto en destino, ruta recomendada…"></textarea>
+        </div>
+      </div>
+
+      <div class="viaj-actions">
+        <button type="button" class="btn-reset-viaj" onclick="document.getElementById('formViaje').reset()">Limpiar</button>
+        <button type="submit" class="btn-crear-viaje">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          Programar viaje
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- LISTADO -->
+<div class="viaj-list-card">
+  <div class="viaj-list-header">
+    <h3>Viajes registrados</h3>
+    <span class="viaj-count">{{ items | length }} viaje{% if items | length != 1 %}s{% endif %}</span>
+  </div>
+  <div class="viaj-table-wrap">
+    <table class="viaj-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Ruta</th>
+          <th>Vehículo</th>
+          <th>Conductor</th>
+          <th>Tipo de carga</th>
+          <th>Salida programada</th>
+          <th>Estado</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in items %}
+        {% set ec = {'Programado':'est-programado','En ruta':'est-en-ruta','Finalizado':'est-finalizado','Cancelado':'est-cancelado'}.get(item.estado,'est-programado') %}
+        <tr class="viaj-row-clickable"
+            onclick="abrirDetalleViaje(this)"
+            data-id="{{ item.id }}"
+            data-origen="{{ item.ciudad_origen }}"
+            data-destino="{{ item.ciudad_destino }}"
+            data-placa="{{ item.placa }}"
+            data-conductor="{{ item.conductor }}"
+            data-tipo-carga="{{ item.tipo_carga }}"
+            data-estado="{{ item.estado }}"
+            data-ec="{{ ec }}"
+            data-fecha-salida="{{ item.fecha_salida | fecha_es('hora') if item.fecha_salida else '' }}"
+            data-fecha-llegada="{{ item.fecha_llegada | fecha_es('hora') if item.fecha_llegada else '' }}"
+            data-km-inicio="{{ item.kilometraje_inicio if item.kilometraje_inicio else '' }}"
+            data-km-fin="{{ item.kilometraje_fin if item.kilometraje_fin else '' }}"
+            data-km-recorridos="{% if item.kilometraje_fin and item.kilometraje_inicio %}{{ '{:,.0f}'.format((item.kilometraje_fin - item.kilometraje_inicio)|float).replace(',','.') }}{% endif %}"
+            data-comb-inicio="{{ item.combustible_inicio if item.combustible_inicio else '' }}"
+            data-comb-fin="{{ item.combustible_fin if item.combustible_fin else '' }}"
+            data-obs="{{ item.observaciones if item.observaciones else '' }}">
+          <td><code style="font-size:11px;color:var(--muted);">{{ item.id }}</code></td>
+          <td><strong>{{ item.ciudad_origen }} → {{ item.ciudad_destino }}</strong></td>
+          <td><code style="font-size:12px;">{{ item.placa }}</code></td>
+          <td>{{ item.conductor }}</td>
+          <td>{{ item.tipo_carga }}</td>
+          <td style="font-size:12px;color:var(--muted);">
+            {{ item.fecha_salida | fecha_es('hora') if item.fecha_salida else '—' }}
+          </td>
+          <td>
+            <span class="est-pill {{ ec }}">
+              <span style="width:5px;height:5px;border-radius:50%;background:currentColor;display:inline-block;"></span>
+              {{ item.estado }}
+            </span>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7">
+          <div class="viaj-empty">
+            <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#d6b88a" stroke-width="1.5">
+              <rect x="1" y="9" width="18" height="9" rx="2"/><path d="M19 13h3l1 4H19"/>
+              <circle cx="6" cy="20" r="2"/><circle cx="15" cy="20" r="2"/><path d="M1 9l3-6h12l2 6"/>
+            </svg>
+            <p>No hay viajes registrados</p>
+          </div>
+        </td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ════ MODAL DETALLE VIAJE ════ -->
+<div class="modal-overlay-v" id="modalDetalleViaje" onclick="if(event.target===this)cerrarDetalleViaje()">
+  <div class="modal-box-v">
+    <!-- Cabecera -->
+    <div class="mdv-head" id="mdvHead">
+      <div class="mdv-head-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
+          <rect x="1" y="9" width="18" height="9" rx="2"/>
+          <path d="M19 13h3l1 4H19"/>
+          <circle cx="6" cy="20" r="2"/>
+          <circle cx="15" cy="20" r="2"/>
+          <path d="M1 9l3-6h12l2 6"/>
+        </svg>
+      </div>
+      <div class="mdv-head-text">
+        <div class="mdv-head-num" id="mdvNum">#0</div>
+        <h3 id="mdvRuta">Ruta</h3>
+        <div id="mdvEstadoBadge"></div>
+      </div>
+      <button class="mdv-close-btn" onclick="cerrarDetalleViaje()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <!-- Cuerpo scroll -->
+    <div class="mdv-scroll">
+      <!-- Info principal -->
+      <div class="mdv-section-title">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        Información general
+      </div>
+      <div class="mdv-grid">
+        <div class="mdv-card">
+          <div class="mdv-card-label">Vehículo</div>
+          <div class="mdv-card-val mono" id="mdvPlaca">—</div>
+        </div>
+        <div class="mdv-card">
+          <div class="mdv-card-label">Conductor</div>
+          <div class="mdv-card-val" id="mdvConductor">—</div>
+        </div>
+        <div class="mdv-card">
+          <div class="mdv-card-label">Tipo de carga</div>
+          <div class="mdv-card-val" id="mdvTipoCarga">—</div>
+        </div>
+        <div class="mdv-card">
+          <div class="mdv-card-label">Estado</div>
+          <div class="mdv-card-val" id="mdvEstado">—</div>
+        </div>
+      </div>
+
+      <!-- Fechas -->
+      <div class="mdv-section-title" style="margin-top:18px;">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Fechas y tiempos
+      </div>
+      <div class="mdv-grid">
+        <div class="mdv-card">
+          <div class="mdv-card-label">Fecha de salida</div>
+          <div class="mdv-card-val mono" id="mdvFechaSalida">—</div>
+        </div>
+        <div class="mdv-card">
+          <div class="mdv-card-label">Fecha de llegada</div>
+          <div class="mdv-card-val mono" id="mdvFechaLlegada">—</div>
+        </div>
+      </div>
+
+      <!-- Kilometraje -->
+      <div class="mdv-section-title" style="margin-top:18px;">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 6v6l3 3"/></svg>
+        Kilometraje
+      </div>
+      <div class="mdv-grid mdv-grid-3">
+        <div class="mdv-card">
+          <div class="mdv-card-label">Km inicio (odómetro)</div>
+          <div class="mdv-card-val mono" id="mdvKmInicio">—</div>
+        </div>
+        <div class="mdv-card">
+          <div class="mdv-card-label">Km fin (odómetro)</div>
+          <div class="mdv-card-val mono" id="mdvKmFin">—</div>
+        </div>
+        <div class="mdv-card mdv-card-highlight" id="mdvKmRecorridosCard">
+          <div class="mdv-card-label">Km recorridos</div>
+          <div class="mdv-card-val mono" id="mdvKmRecorridos">—</div>
+        </div>
+      </div>
+
+      <!-- Combustible -->
+      <div class="mdv-section-title" style="margin-top:18px;">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 22V6a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16"/><path d="M15 10h2a2 2 0 0 1 2 2v6a2 2 0 0 0 2 2"/><path d="M21 10l-2-3"/></svg>
+        Combustible
+      </div>
+      <div class="mdv-grid">
+        <div class="mdv-card">
+          <div class="mdv-card-label">Combustible al salir</div>
+          <div class="mdv-card-val mono" id="mdvCombInicio">—</div>
+        </div>
+        <div class="mdv-card">
+          <div class="mdv-card-label">Combustible al llegar</div>
+          <div class="mdv-card-val mono" id="mdvCombFin">—</div>
+        </div>
+      </div>
+
+      <!-- Observaciones -->
+      <div id="mdvObsWrap" style="display:none; margin-top:18px;">
+        <div class="mdv-section-title">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/></svg>
+          Observaciones del conductor
+        </div>
+        <div class="mdv-obs-box" id="mdvObs"></div>
+      </div>
+    </div>
+    <!-- Footer -->
+    <div class="mdv-footer">
+      <button class="mdv-btn-cerrar" onclick="cerrarDetalleViaje()">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<style>
+/* ── MODAL DETALLE VIAJE ── */
+.viaj-row-clickable { cursor:pointer; transition:background 0.12s; }
+.viaj-row-clickable:hover { background:var(--cream) !important; }
+.modal-overlay-v {
+  display:none; position:fixed; inset:0;
+  background:rgba(20,12,0,0.52); backdrop-filter:blur(3px);
+  z-index:9999; align-items:center; justify-content:center; padding:16px;
+}
+.modal-overlay-v.open { display:flex; }
+.modal-box-v {
+  background:#fff; border-radius:22px; width:100%; max-width:680px;
+  max-height:90vh; display:flex; flex-direction:column;
+  box-shadow:0 24px 80px rgba(0,0,0,0.28);
+  animation:mdvIn 0.3s cubic-bezier(.22,1,.36,1);
+}
+@keyframes mdvIn { from{opacity:0;transform:translateY(28px) scale(0.96)} to{opacity:1;transform:none} }
+
+/* Cabecera */
+.mdv-head {
+  background:linear-gradient(135deg,#78350f,#b45309,#d97706);
+  border-radius:22px 22px 0 0; padding:22px 24px 20px;
+  display:flex; align-items:flex-start; gap:16px; flex-shrink:0; position:relative;
+}
+.mdv-head-icon {
+  width:50px; height:50px; border-radius:14px; flex-shrink:0;
+  background:rgba(255,255,255,0.15); border:1.5px solid rgba(255,255,255,0.22);
+  display:flex; align-items:center; justify-content:center;
+}
+.mdv-head-num { font-size:11px; color:rgba(255,255,255,0.6); font-weight:700; letter-spacing:0.06em; margin-bottom:2px; }
+.mdv-head-text h3 { margin:0 0 6px; font-size:18px; font-weight:800; color:#fff; }
+.mdv-close-btn {
+  position:absolute; top:18px; right:18px;
+  background:rgba(255,255,255,0.15); border:none; border-radius:50%;
+  width:34px; height:34px; cursor:pointer; display:flex; align-items:center; justify-content:center;
+  color:rgba(255,255,255,0.8); transition:background 0.2s;
+}
+.mdv-close-btn:hover { background:rgba(255,255,255,0.28); }
+
+/* Scroll body */
+.mdv-scroll { overflow-y:auto; flex:1; padding:22px 24px; }
+
+/* Section titles */
+.mdv-section-title {
+  display:flex; align-items:center; gap:7px;
+  font-size:10.5px; font-weight:800; text-transform:uppercase; letter-spacing:0.08em;
+  color:var(--amber-700,#b45309); margin-bottom:12px;
+}
+
+/* Grid de cards */
+.mdv-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.mdv-grid-3 { grid-template-columns:1fr 1fr 1fr; }
+.mdv-card {
+  background:var(--cream,#fffbeb); border:1px solid #fde68a;
+  border-radius:12px; padding:12px 14px;
+}
+.mdv-card-highlight {
+  background:linear-gradient(135deg,#fef3c7,#fde68a);
+  border-color:#f59e0b;
+}
+.mdv-card-label { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.07em; color:var(--muted,#9ca3af); margin-bottom:5px; }
+.mdv-card-val { font-size:14px; font-weight:700; color:var(--text-dark,#1c1917); }
+.mdv-card-val.mono { font-family:'JetBrains Mono',monospace; }
+
+/* Observaciones */
+.mdv-obs-box {
+  background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px;
+  padding:14px 16px; font-size:13.5px; color:#334155; line-height:1.6;
+}
+
+/* Footer */
+.mdv-footer {
+  padding:14px 24px 20px; border-top:1px solid #f0f0f0; display:flex; justify-content:flex-end; flex-shrink:0;
+}
+.mdv-btn-cerrar {
+  background:#f1f5f9; border:1px solid #e2e8f0; border-radius:10px;
+  padding:9px 24px; font-size:13px; font-weight:700; color:#475569; cursor:pointer; transition:all 0.18s;
+}
+.mdv-btn-cerrar:hover { background:#e2e8f0; }
+
+/* Badge estados en modal */
+.mdv-badge { display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:700; padding:3px 10px; border-radius:99px; border:1px solid; }
+.mdv-badge-prog  { background:rgba(251,191,36,0.12); color:#b45309; border-color:rgba(251,191,36,0.4); }
+.mdv-badge-ruta  { background:rgba(59,130,246,0.10); color:#1d4ed8; border-color:rgba(59,130,246,0.3); }
+.mdv-badge-fin   { background:rgba(16,185,129,0.10); color:#047857; border-color:rgba(16,185,129,0.3); }
+.mdv-badge-can   { background:rgba(239,68,68,0.10);  color:#b91c1c; border-color:rgba(239,68,68,0.3); }
+
+@media(max-width:560px){
+  .mdv-grid { grid-template-columns:1fr; }
+  .mdv-grid-3 { grid-template-columns:1fr 1fr; }
+}
+</style>
+
+<script>
+/* Bloquear fechas pasadas en el input */
+(function() {
+  const now = new Date();
+  const pad = n => String(n).padStart(2,'0');
+  const min = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
+  const inp = document.getElementById('fechaSalida');
+  inp.min = min;
+})();
+
+/* Validación al enviar */
+document.getElementById('formViaje').addEventListener('submit', function(e) {
+  let ok = true;
+  const fs = document.getElementById('fechaSalida');
+  const err = document.getElementById('errFecha');
+
+  if (fs.value) {
+    const selDate = new Date(fs.value);
+    const now = new Date();
+    if (selDate < now) {
+      fs.classList.add('field-error');
+      err.classList.add('show');
+      ok = false;
+    } else {
+      fs.classList.remove('field-error');
+      err.classList.remove('show');
+    }
+  }
+
+  if (!ok) { e.preventDefault(); fs.focus(); }
+});
+
+/* Limpiar error al cambiar fecha */
+document.getElementById('fechaSalida').addEventListener('change', function() {
+  this.classList.remove('field-error');
+  document.getElementById('errFecha').classList.remove('show');
+});
+
+/* ── MODAL DETALLE VIAJE ── */
+function abrirDetalleViaje(row) {
+  const d = row.dataset;
+  document.getElementById('mdvNum').textContent = '#' + d.id;
+  document.getElementById('mdvRuta').textContent = d.origen + ' → ' + d.destino;
+
+  // Badge de estado
+  const badgeMap = {
+    'Programado': ['mdv-badge-prog','📋 Programado'],
+    'En ruta':    ['mdv-badge-ruta','🚛 En ruta'],
+    'Finalizado': ['mdv-badge-fin', '✅ Finalizado'],
+    'Cancelado':  ['mdv-badge-can', '❌ Cancelado'],
+  };
+  const [bClass, bText] = badgeMap[d.estado] || ['mdv-badge-prog', d.estado];
+  document.getElementById('mdvEstadoBadge').innerHTML = `<span class="mdv-badge ${bClass}">${bText}</span>`;
+  document.getElementById('mdvEstado').innerHTML = `<span class="mdv-badge ${bClass}">${bText}</span>`;
+
+  document.getElementById('mdvPlaca').textContent    = d.placa    || '—';
+  document.getElementById('mdvConductor').textContent= d.conductor || '—';
+  document.getElementById('mdvTipoCarga').textContent= d.tipoCarga || '—';
+
+  document.getElementById('mdvFechaSalida').textContent  = d.fechaSalida  || '—';
+  document.getElementById('mdvFechaLlegada').textContent = d.fechaLlegada || 'En curso';
+
+  document.getElementById('mdvKmInicio').textContent    = d.kmInicio    ? Number(d.kmInicio).toLocaleString('es-CO') + ' km' : '—';
+  document.getElementById('mdvKmFin').textContent       = d.kmFin       ? Number(d.kmFin).toLocaleString('es-CO') + ' km' : '—';
+  const recCard = document.getElementById('mdvKmRecorridosCard');
+  if (d.kmRecorridos) {
+    document.getElementById('mdvKmRecorridos').textContent = d.kmRecorridos + ' km';
+    recCard.classList.add('mdv-card-highlight');
+  } else {
+    document.getElementById('mdvKmRecorridos').textContent = '—';
+    recCard.classList.remove('mdv-card-highlight');
+  }
+
+  document.getElementById('mdvCombInicio').textContent = d.combInicio ? Number(d.combInicio).toLocaleString('es-CO') + ' L' : '—';
+  document.getElementById('mdvCombFin').textContent    = d.combFin    ? Number(d.combFin).toLocaleString('es-CO') + ' L' : '—';
+
+  const obsWrap = document.getElementById('mdvObsWrap');
+  if (d.obs && d.obs.trim()) {
+    document.getElementById('mdvObs').textContent = d.obs;
+    obsWrap.style.display = 'block';
+  } else {
+    obsWrap.style.display = 'none';
+  }
+
+  document.getElementById('modalDetalleViaje').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function cerrarDetalleViaje() {
+  document.getElementById('modalDetalleViaje').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') cerrarDetalleViaje();
+});
+</script>
+
+{% endblock %}

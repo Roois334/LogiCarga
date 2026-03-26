@@ -1,0 +1,463 @@
+{% extends 'base.html' %}
+{% block title %}Usuarios | LogiCarga{% endblock %}
+{% block page_title %}Usuarios{% endblock %}
+{% block content %}
+
+<style>
+/* ── USUARIOS ─────────────────────────────────────── */
+.usr-header { margin-bottom: 24px; }
+.usr-header h2 {
+  font-size: 24px; font-weight: 800; margin: 0 0 5px;
+  background: linear-gradient(135deg, var(--amber-700), var(--amber-400));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.usr-header p { color: var(--muted); font-size: 13.5px; margin: 0; }
+
+/* ROL SELECTOR */
+.rol-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 22px; }
+.rol-option { position: relative; cursor: pointer; }
+.rol-option input[type="radio"] { position: absolute; opacity: 0; width: 0; height: 0; }
+.rol-card {
+  display: flex; align-items: flex-start; gap: 14px; padding: 18px 20px; border-radius: 16px;
+  border: 2px solid var(--border); background: var(--white);
+  transition: all 0.22s cubic-bezier(.22,1,.36,1); cursor: pointer; position: relative;
+}
+.rol-card:hover { border-color: var(--amber-300); background: var(--cream); transform: translateY(-2px); box-shadow: 0 6px 20px var(--shadow); }
+.rol-option input:checked + .rol-card { border-color: var(--amber-500); background: linear-gradient(135deg, #fffbeb, #fef3c7); box-shadow: 0 6px 24px rgba(245,158,11,0.2); }
+.rol-icon-wrap { width: 44px; height: 44px; border-radius: 13px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+.ri-supervisor { background: linear-gradient(135deg, #dbeafe, #bfdbfe); }
+.ri-conductor  { background: linear-gradient(135deg, #d1fae5, #a7f3d0); }
+.rol-card-body { flex: 1; }
+.rol-card-body h4 { margin: 0 0 4px; font-size: 14px; font-weight: 800; color: var(--text-dark); }
+.rol-card-body .rol-desc { margin: 0 0 10px; font-size: 12px; color: var(--muted); line-height: 1.5; }
+.rol-perms-mini { display: flex; flex-wrap: wrap; gap: 5px; }
+.rpm { font-size: 10.5px; font-weight: 600; padding: 2px 8px; border-radius: 99px; border: 1px solid; }
+.rpm.sup { color: #1e40af; background: rgba(59,130,246,0.07); border-color: rgba(59,130,246,0.25); }
+.rpm.con { color: #065f46; background: rgba(16,185,129,0.07); border-color: rgba(16,185,129,0.25); }
+.rol-check { position: absolute; top: 14px; right: 14px; width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--border); background: white; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
+.rol-option input:checked + .rol-card .rol-check { background: var(--amber-500); border-color: var(--amber-500); }
+.rol-option input:checked + .rol-card .rol-check::after { content: ''; display: block; width: 7px; height: 7px; border-radius: 50%; background: white; }
+
+/* STEP DIVIDER */
+.step-divider { display: flex; align-items: center; gap: 12px; margin: 20px 0 16px; font-size: 13px; font-weight: 700; color: var(--text-dark); }
+.step-divider::before, .step-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+.step-num { width: 24px; height: 24px; border-radius: 50%; background: var(--amber-500); color: white; font-size: 12px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; margin-right: 6px; flex-shrink: 0; }
+
+/* FORM SECTIONS */
+.form-section { border-radius: 14px; border: 1px solid var(--border); overflow: hidden; margin-bottom: 14px; background: var(--white); }
+.form-section-header { display: flex; align-items: center; gap: 9px; padding: 12px 18px; background: var(--cream); border-bottom: 1px solid var(--border); font-size: 11px; font-weight: 800; color: var(--amber-700); text-transform: uppercase; letter-spacing: 0.09em; }
+.form-section-body { padding: 18px; display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.form-section-body label { display: flex; flex-direction: column; gap: 5px; font-size: 13px; font-weight: 600; color: var(--text-dark); }
+.form-section-body input,
+.form-section-body select { padding: 10px 13px; border-radius: 10px; border: 1.5px solid var(--border); font-size: 13px; background: white; transition: border-color 0.2s; font-family: inherit; color: var(--text-dark); }
+.form-section-body input:focus,
+.form-section-body select:focus { outline: none; border-color: var(--amber-400); box-shadow: 0 0 0 3px rgba(245,158,11,0.12); }
+.form-section-body label.full { grid-column: 1 / -1; }
+
+/* Conductor extra section */
+#seccionConductor { display: none; }
+.usr-submit-btn {
+  width: 100%; padding: 14px; border: none; border-radius: 12px; cursor: pointer;
+  background: linear-gradient(135deg, #f59e0b, #d97706); color: white;
+  font-size: 14px; font-weight: 700; letter-spacing: 0.02em;
+  box-shadow: 0 4px 18px rgba(217,119,6,0.35); transition: all 0.2s; margin-top: 6px;
+}
+.usr-submit-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(217,119,6,0.45); }
+
+.sel-placeholder {
+  text-align: center; padding: 40px 16px; color: var(--muted); font-size: 13.5px;
+  border: 1.5px dashed var(--border); border-radius: 14px; background: var(--cream);
+}
+.sel-placeholder svg { display: block; margin: 0 auto 12px; opacity: 0.3; }
+
+/* TABLE */
+.usr-table-wrap { background: var(--white); border: 1px solid var(--border); border-radius: 18px; overflow: hidden; box-shadow: 0 2px 16px var(--shadow); margin-top: 32px; }
+.usr-table-top { display: flex; align-items: center; justify-content: space-between; padding: 18px 24px; border-bottom: 1px solid var(--border); }
+.usr-table-top h3 { margin: 0; font-size: 15px; font-weight: 700; }
+.usr-count { font-size: 11.5px; font-weight: 700; padding: 4px 12px; border-radius: 99px; background: var(--amber-100); color: var(--amber-700); border: 1px solid var(--amber-200); }
+.usr-filters { display: flex; gap: 6px; padding: 12px 24px; border-bottom: 1px solid var(--border); background: var(--cream); flex-wrap: wrap; }
+.filter-btn { font-size: 11.5px; font-weight: 700; padding: 4px 14px; border-radius: 99px; border: 1.5px solid var(--border); background: white; cursor: pointer; transition: all 0.15s; color: var(--text-mid); }
+.filter-btn:hover { border-color: var(--amber-300); color: var(--amber-700); }
+.filter-btn.active { background: var(--amber-500); border-color: var(--amber-500); color: white; }
+.usr-table { width: 100%; border-collapse: collapse; }
+.usr-table thead th { padding: 11px 20px; text-align: left; font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.09em; color: var(--amber-600); background: var(--cream); border-bottom: 2px solid var(--amber-100); }
+.usr-table tbody tr { border-bottom: 1px solid var(--border); transition: background 0.15s; }
+.usr-table tbody tr:last-child { border-bottom: none; }
+.usr-table tbody tr:hover { background: var(--cream); }
+.usr-table td { padding: 13px 20px; font-size: 13.5px; vertical-align: middle; }
+.usr-avatar { width: 36px; height: 36px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 800; color: white; flex-shrink: 0; background: linear-gradient(135deg, #f59e0b, #b45309); vertical-align: middle; margin-right: 10px; }
+.usr-avatar.av-sup { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
+.usr-avatar.av-con { background: linear-gradient(135deg, #10b981, #065f46); }
+.rol-pill { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 700; padding: 3px 11px; border-radius: 99px; border: 1px solid; }
+.rp-admin     { background: rgba(245,158,11,0.1); color:#92400e; border-color:rgba(245,158,11,0.3); }
+.rp-conductor { background: rgba(16,185,129,0.08); color:#065f46; border-color:rgba(16,185,129,0.25); }
+.rp-supervisor{ background: rgba(59,130,246,0.08); color:#1e40af; border-color:rgba(59,130,246,0.25); }
+.usr-empty { text-align:center; padding:48px; color:var(--muted); font-size:13px; }
+.estado-dot { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600; }
+.estado-dot::before { content: ''; width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.estado-dot.activo::before { background: #10b981; }
+.estado-dot.activo { color: #065f46; }
+.estado-dot.inactivo::before { background: #d1d5db; }
+.estado-dot.inactivo { color: var(--muted); }
+.toggle-btn { padding: 4px 12px; border-radius: 8px; border: 1.5px solid; font-size: 11.5px; font-weight: 700; cursor: pointer; transition: all 0.2s; }
+.btn-desactivar { background:rgba(239,68,68,0.07); color:#dc2626; border-color:rgba(239,68,68,0.25); }
+.btn-desactivar:hover { background:#dc2626; color:white; }
+.btn-activar { background:rgba(16,185,129,0.07); color:#059669; border-color:rgba(16,185,129,0.25); }
+.btn-activar:hover { background:#059669; color:white; }
+
+/* ── Estilos formulario conductor (igual que Supervisor) ── */
+.cond-section-label {
+  font-size: 10.5px; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 0.10em; color: var(--amber-600);
+  display: flex; align-items: center; gap: 8px;
+}
+.cond-section-label::after { content: ''; flex: 1; height: 1px; background: var(--amber-100); }
+.cond-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 4px; }
+.cond-grid.cols3 { grid-template-columns: 1fr 1fr 1fr; }
+.cond-field { display: flex; flex-direction: column; gap: 5px; font-size: 12.5px; font-weight: 600; color: var(--text-mid); }
+.cond-field.full { grid-column: 1 / -1; }
+.cond-field label { font-size: 12.5px; font-weight: 600; color: var(--text-dark); }
+.cond-field input,
+.cond-field select {
+  padding: 9px 12px; border-radius: 10px;
+  border: 1.5px solid var(--border);
+  font-size: 13px; font-family: inherit;
+  background: var(--off-white); color: var(--text);
+  transition: border-color 0.18s, box-shadow 0.18s; outline: none;
+}
+.cond-field input:focus,
+.cond-field select:focus {
+  border-color: var(--amber-400);
+  box-shadow: 0 0 0 3px rgba(245,158,11,0.12);
+  background: #fff;
+}
+.cond-field input::placeholder { color: var(--muted); }
+.req { color: #ef4444; margin-left: 2px; font-size: 11px; }
+@media (max-width: 640px) {
+  .cond-grid, .cond-grid.cols3 { grid-template-columns: 1fr; }
+  .cond-field.full { grid-column: 1; }
+}
+</style>
+
+<div class="usr-header">
+  <h2>Gestión de Usuarios</h2>
+  <p>Crea cuentas de acceso para supervisores y conductores de la operación.</p>
+</div>
+
+<div class="card">
+  <div class="step-divider">
+    <span class="step-num">1</span> Elige el tipo de cuenta a crear
+  </div>
+
+  <div class="rol-grid">
+    <label class="rol-option">
+      <input type="radio" name="rol_visual" value="supervisor" onchange="switchRol('supervisor')">
+      <div class="rol-card">
+        <div class="rol-icon-wrap ri-supervisor">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1e40af" stroke-width="2">
+            <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+            <path d="M18 3l2 2-6 6" stroke="#1e40af"/>
+          </svg>
+        </div>
+        <div class="rol-card-body">
+          <h4>Supervisor</h4>
+          <p class="rol-desc">Monitorea la operación, gestiona viajes, mantenimientos y consulta reportes.</p>
+          <div class="rol-perms-mini">
+            <span class="rpm sup">Viajes</span>
+            <span class="rpm sup">Mantenimientos</span>
+            <span class="rpm sup">Reportes</span>
+            <span class="rpm sup">Consultas</span>
+          </div>
+        </div>
+        <div class="rol-check"></div>
+      </div>
+    </label>
+
+    <label class="rol-option">
+      <input type="radio" name="rol_visual" value="conductor" onchange="switchRol('conductor')">
+      <div class="rol-card">
+        <div class="rol-icon-wrap ri-conductor">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#065f46" stroke-width="2">
+            <rect x="1" y="9" width="18" height="9" rx="2"/>
+            <path d="M19 13h3l1 4H19"/>
+            <circle cx="6" cy="20" r="2"/><circle cx="15" cy="20" r="2"/>
+            <path d="M1 9l3-6h12l2 6"/>
+          </svg>
+        </div>
+        <div class="rol-card-body">
+          <h4>Conductor</h4>
+          <p class="rol-desc">Opera la flota en ruta. Registra combustible, viáticos e incidentes desde el campo.</p>
+          <div class="rol-perms-mini">
+            <span class="rpm con">Mis Viajes</span>
+            <span class="rpm con">Combustible</span>
+            <span class="rpm con">Viáticos</span>
+            <span class="rpm con">Incidentes</span>
+          </div>
+        </div>
+        <div class="rol-check"></div>
+      </div>
+    </label>
+  </div>
+
+  <form method="post" id="formUsuario">
+    <input type="hidden" name="rol_id" id="rolIdHidden" value="">
+
+    <div id="camposAcceso" style="display:none;">
+      <div class="step-divider">
+        <span class="step-num">2</span> Datos de acceso al sistema
+      </div>
+
+      <!-- ── SECCIÓN SUPERVISOR: solo credenciales ── -->
+      <div id="bloqueCredenciales">
+        <div class="cond-section-label" style="margin:0 0 12px;">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+          Información personal y credenciales
+        </div>
+        <div class="cond-grid">
+          <div class="cond-field">
+            <label>Nombre completo <span class="req">*</span></label>
+            <input name="nombre" placeholder="Ej: Carlos Andrés Rojas" required autocomplete="off">
+          </div>
+          <div class="cond-field">
+            <label>Correo electrónico <span class="req">*</span></label>
+            <input type="email" name="correo" placeholder="correo@empresa.com" required>
+          </div>
+          <div class="cond-field">
+            <label>Contraseña <span class="req">*</span></label>
+            <input type="password" name="password" placeholder="Mínimo 6 caracteres" required>
+          </div>
+          <div class="cond-field">
+            <label>Teléfono</label>
+            <input name="telefono" placeholder="Ej: 3001234567">
+          </div>
+        </div>
+      </div>
+
+      <!-- ── SECCIÓN CONDUCTOR: credenciales + datos completos unificados ── -->
+      <div id="seccionConductor" style="display:none;">
+
+        <div class="cond-section-label" style="margin:0 0 12px;">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+          Datos personales
+        </div>
+        <div class="cond-grid">
+          <div class="cond-field full">
+            <label>Nombre completo <span class="req">*</span></label>
+            <input name="nombre" placeholder="Ej: Carlos Andrés Ruiz López" required autocomplete="off">
+          </div>
+          <div class="cond-field">
+            <label>Correo electrónico <span class="req">*</span></label>
+            <input type="email" name="correo" placeholder="correo@empresa.com" required>
+          </div>
+          <div class="cond-field">
+            <label>Contraseña <span class="req">*</span></label>
+            <input type="password" name="password" placeholder="Mínimo 6 caracteres" required>
+          </div>
+          <div class="cond-field">
+            <label>Teléfono</label>
+            <input name="telefono" placeholder="Ej: 3001234567">
+          </div>
+          <div class="cond-field">
+            <label>Ciudad</label>
+            <input name="ciudad_conductor" placeholder="Ej: Bogotá">
+          </div>
+          <div class="cond-field">
+            <label>Dirección</label>
+            <input name="direccion_conductor" placeholder="Ej: Cra 15 # 32-10">
+          </div>
+        </div>
+
+        <div class="cond-section-label" style="margin:18px 0 12px;">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+          Licencia de conducción
+        </div>
+        <div class="cond-grid cols3">
+          <div class="cond-field">
+            <label>N.° de licencia <span class="req">*</span></label>
+            <input name="numero_licencia" placeholder="Ej: 123456789" id="campoLicencia">
+          </div>
+          <div class="cond-field">
+            <label>Categoría</label>
+            <select name="tipo_licencia">
+              <option value="">-- Seleccionar --</option>
+              <option value="C1">C1 — Camiones rígidos hasta 3.5 t</option>
+              <option value="C2">C2 — Camiones rígidos más de 3.5 t</option>
+              <option value="C3">C3 — Tractocamiones y articulados</option>
+              <option value="B1">B1 — Automóviles y camperos</option>
+              <option value="B2">B2 — Buses y busetas</option>
+              <option value="B3">B3 — Buses articulados</option>
+              <option value="A1">A1 — Motocicletas hasta 125 cc</option>
+              <option value="A2">A2 — Motocicletas más de 125 cc</option>
+            </select>
+          </div>
+          <div class="cond-field">
+            <label>Vencimiento de licencia</label>
+            <input type="date" name="fecha_vencimiento_licencia">
+          </div>
+        </div>
+
+      </div>
+
+      <button type="submit" class="usr-submit-btn" id="btnGuardar">Crear cuenta</button>
+    </div>
+
+    <div id="seleccionaRol" class="sel-placeholder">
+      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+        <circle cx="9" cy="7" r="4"/>
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
+      </svg>
+      Selecciona un tipo de cuenta arriba para continuar
+    </div>
+
+  </form>
+</div>
+
+<!-- TABLA USUARIOS -->
+<div class="usr-table-wrap">
+  <div class="usr-table-top">
+    <h3>Usuarios registrados</h3>
+    <span class="usr-count">{{ items | length }} usuarios</span>
+  </div>
+  <div class="usr-filters">
+    <button class="filter-btn active" onclick="filtrarRol('todos', this)">Todos</button>
+    <button class="filter-btn" onclick="filtrarRol('Administrador', this)">Administrador</button>
+    <button class="filter-btn" onclick="filtrarRol('Supervisor', this)">Supervisor</button>
+    <button class="filter-btn" onclick="filtrarRol('Conductor', this)">Conductor</button>
+  </div>
+  <table class="usr-table" id="usrTable">
+    <thead>
+      <tr>
+        <th>Usuario</th>
+        <th>Correo</th>
+        <th>Rol</th>
+        <th>Teléfono</th>
+        <th>Info adicional</th>
+        <th>Estado</th>
+        <th>Acción</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in items %}
+      <tr data-rol="{{ item.rol }}">
+        <td>
+          <span class="usr-avatar {% if item.rol == 'Supervisor' %}av-sup{% elif item.rol == 'Conductor' %}av-con{% endif %}">{{ item.nombre[0] | upper }}</span>
+          <strong>{{ item.nombre }}</strong>
+        </td>
+        <td style="color:var(--muted);font-size:13px;">{{ item.correo }}</td>
+        <td>
+          {% if item.rol == 'Administrador' %}<span class="rol-pill rp-admin">● Administrador</span>
+          {% elif item.rol == 'Conductor' %}<span class="rol-pill rp-conductor">● Conductor</span>
+          {% elif item.rol == 'Supervisor' %}<span class="rol-pill rp-supervisor">● Supervisor</span>
+          {% else %}<span class="rol-pill">{{ item.rol }}</span>{% endif %}
+        </td>
+        <td style="color:var(--muted);font-size:13px;">{{ item.telefono or '—' }}</td>
+        <td>
+          {% if item.rol == 'Conductor' %}
+            <div style="display:flex;flex-direction:column;gap:3px;">
+              {% if item.numero_licencia %}
+                <span style="font-size:12px;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--amber-700);">
+                  🪪 {{ item.numero_licencia }}
+                  {% if item.tipo_licencia %}
+                    <span style="background:linear-gradient(135deg,#fef3c7,#fde68a);border:1px solid #f59e0b;border-radius:5px;padding:1px 6px;font-size:10px;color:#92400e;margin-left:4px;">{{ item.tipo_licencia }}</span>
+                  {% endif %}
+                </span>
+              {% endif %}
+              {% if item.fecha_vencimiento_licencia %}
+                <span style="font-size:11px;color:var(--muted);">Vence: {{ item.fecha_vencimiento_licencia | fecha_es }}</span>
+              {% endif %}
+              {% if item.ciudad %}
+                <span style="font-size:11px;color:var(--muted);">📍 {{ item.ciudad }}</span>
+              {% endif %}
+              {% if not item.numero_licencia %}
+                <span style="font-size:11px;color:var(--muted);">Sin datos de licencia</span>
+              {% endif %}
+            </div>
+          {% else %}
+            <span style="color:var(--muted);font-size:12px;">—</span>
+          {% endif %}
+        </td>
+        <td>
+          <span class="estado-dot {% if item.activo %}activo{% else %}inactivo{% endif %}" id="dot-{{ item.id }}">
+            {% if item.activo %}Activo{% else %}Inactivo{% endif %}
+          </span>
+        </td>
+        <td>
+          {% if item.rol != 'Administrador' %}
+          <button class="toggle-btn {% if item.activo %}btn-desactivar{% else %}btn-activar{% endif %}"
+                  id="tbtn-{{ item.id }}"
+                  onclick="toggleUsuario({{ item.id }}, {{ 1 if item.activo else 0 }})">
+            {% if item.activo %}Desactivar{% else %}Activar{% endif %}
+          </button>
+          {% else %}
+          <span style="color:var(--muted);font-size:12px;">—</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="7" class="usr-empty">Sin usuarios registrados todavía</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<script>
+const ROL_IDS = {
+  {% for rol in roles %}'{{ rol.nombre | lower }}': {{ rol.id }},{% endfor %}
+};
+
+function switchRol(tipo) {
+  document.getElementById('camposAcceso').style.display = 'block';
+  document.getElementById('seleccionaRol').style.display = 'none';
+  const bloqueCredenciales = document.getElementById('bloqueCredenciales');
+  const secConductor       = document.getElementById('seccionConductor');
+  const btn  = document.getElementById('btnGuardar');
+  const rid  = document.getElementById('rolIdHidden');
+  const lic  = document.getElementById('campoLicencia');
+  if (tipo === 'conductor') {
+    bloqueCredenciales.style.display = 'none';
+    secConductor.style.display = 'block';
+    lic.required = true;
+    rid.value = ROL_IDS['conductor'] || '';
+    btn.textContent = 'Crear cuenta de Conductor';
+    btn.style.background = 'linear-gradient(135deg,#f59e0b,#d97706)';
+    btn.style.boxShadow  = '0 4px 18px rgba(5,150,105,0.35)';
+  } else {
+    bloqueCredenciales.style.display = 'block';
+    secConductor.style.display = 'none';
+    lic.required = false;
+    rid.value = ROL_IDS['supervisor'] || '';
+    btn.textContent = 'Crear cuenta de Supervisor';
+    btn.style.background = 'linear-gradient(135deg,#f59e0b,#d97706)';
+    btn.style.boxShadow  = '0 4px 18px rgba(217,119,6,0.35)';
+  }
+}
+
+function filtrarRol(rol, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('#usrTable tbody tr[data-rol]').forEach(row => {
+    row.style.display = (rol === 'todos' || row.dataset.rol === rol) ? '' : 'none';
+  });
+}
+
+async function toggleUsuario(id, currentActive) {
+  const btn = document.getElementById('tbtn-' + id);
+  const dot = document.getElementById('dot-' + id);
+  btn.disabled = true; btn.textContent = '...';
+  try {
+    const r = await fetch('/usuarios/toggle/' + id, {method:'POST', headers:{'Content-Type':'application/json'}});
+    const d = await r.json();
+    if (d.ok) {
+      const isActive = d.activo === 1;
+      btn.className = 'toggle-btn ' + (isActive ? 'btn-desactivar' : 'btn-activar');
+      btn.textContent = isActive ? 'Desactivar' : 'Activar';
+      btn.onclick = function(){ toggleUsuario(id, isActive ? 1 : 0); };
+      dot.className = 'estado-dot ' + (isActive ? 'activo' : 'inactivo');
+      dot.textContent = isActive ? 'Activo' : 'Inactivo';
+    } else { alert(d.msg); }
+  } catch(e) { alert('Error de conexión'); }
+  btn.disabled = false;
+}
+</script>
+{% endblock %}

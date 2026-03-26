@@ -1,0 +1,259 @@
+{% extends 'base.html' %}
+{% block title %}Viaticos | LogiCarga{% endblock %}
+{% block page_title %}Viaticos{% endblock %}
+{% block content %}
+
+<style>
+.vt-header { margin-bottom: 24px; }
+.vt-header h2 { font-size: 26px; font-weight: 800; margin: 0 0 5px; background: linear-gradient(135deg, var(--amber-700), var(--amber-400)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.vt-header p { color: var(--muted); font-size: 13.5px; margin: 0; }
+
+/* Form */
+.vt-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.vt-form-grid label { display: flex; flex-direction: column; gap: 5px; font-size: 13px; font-weight: 600; color: var(--text-dark); }
+.vt-form-grid label.full { grid-column: 1 / -1; }
+.vt-form-grid input, .vt-form-grid select, .vt-form-grid textarea {
+  padding: 10px 13px; border-radius: 10px; border: 1.5px solid var(--border);
+  font-size: 13px; background: white; font-family: inherit; color: var(--text-dark);
+  transition: border-color 0.2s;
+}
+.vt-form-grid input:focus, .vt-form-grid select:focus, .vt-form-grid textarea:focus {
+  outline: none; border-color: var(--amber-400); box-shadow: 0 0 0 3px rgba(245,158,11,0.12);
+}
+.vt-form-grid textarea { resize: vertical; min-height: 80px; }
+
+/* Upload zone */
+.upload-zone {
+  border: 2px dashed var(--border); border-radius: 12px; padding: 20px;
+  text-align: center; cursor: pointer; transition: all 0.2s; background: var(--cream);
+  position: relative;
+}
+.upload-zone:hover, .upload-zone.dragover { border-color: var(--amber-400); background: #fffbeb; }
+.upload-zone input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+.upload-zone svg { display: block; margin: 0 auto 8px; color: var(--amber-500); }
+.upload-zone .uz-label { font-size: 13px; font-weight: 600; color: var(--text-dark); }
+.upload-zone .uz-hint { font-size: 11.5px; color: var(--muted); margin-top: 3px; }
+.upload-preview {
+  display: none; align-items: center; gap: 10px; padding: 10px 14px;
+  background: #f0fdf4; border: 1.5px solid #bbf7d0; border-radius: 10px; margin-top: 8px;
+}
+.upload-preview.show { display: flex; }
+.upload-preview svg { color: #16a34a; flex-shrink: 0; }
+.upload-preview span { font-size: 12.5px; font-weight: 600; color: #15803d; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.upload-preview button { background: none; border: none; cursor: pointer; color: #dc2626; font-size: 14px; padding: 0 4px; }
+
+/* Submit */
+.vt-submit { width: 100%; padding: 13px; border: none; border-radius: 12px; cursor: pointer; background: linear-gradient(135deg, #f59e0b, #d97706); color: white; font-size: 14px; font-weight: 700; box-shadow: 0 4px 16px rgba(217,119,6,0.3); transition: all 0.2s; margin-top: 6px; }
+.vt-submit:hover { transform: translateY(-1px); box-shadow: 0 6px 22px rgba(217,119,6,0.42); }
+
+/* Table */
+.vt-table-wrap { background: var(--white); border: 1px solid var(--border); border-radius: 18px; overflow: hidden; box-shadow: 0 2px 16px var(--shadow); margin-top: 32px; }
+.vt-table-top { display: flex; align-items: center; justify-content: space-between; padding: 18px 24px; border-bottom: 1px solid var(--border); }
+.vt-table-top h3 { margin: 0; font-size: 15px; font-weight: 700; }
+.vt-count { font-size: 11.5px; font-weight: 700; padding: 4px 12px; border-radius: 99px; background: var(--amber-100); color: var(--amber-700); border: 1px solid var(--amber-200); }
+.vt-table { width: 100%; border-collapse: collapse; }
+.vt-table thead th { padding: 11px 18px; text-align: left; font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.09em; color: var(--amber-600); background: var(--cream); border-bottom: 2px solid var(--amber-100); }
+.vt-table tbody tr { border-bottom: 1px solid var(--border); transition: background 0.15s; }
+.vt-table tbody tr:last-child { border-bottom: none; }
+.vt-table tbody tr:hover { background: var(--cream); }
+.vt-table td { padding: 12px 18px; font-size: 13px; vertical-align: middle; }
+.tipo-chip { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 99px; border: 1px solid; }
+.tc-ali { background: rgba(245,158,11,0.1); color:#92400e; border-color:rgba(245,158,11,0.3); }
+.tc-hos { background: rgba(59,130,246,0.1); color:#1e40af; border-color:rgba(59,130,246,0.3); }
+.tc-pea { background: rgba(139,92,246,0.1); color:#6d28d9; border-color:rgba(139,92,246,0.3); }
+.tc-otr { background: rgba(107,114,128,0.1); color:#374151; border-color:rgba(107,114,128,0.3); }
+.comp-preview-wrap { position: relative; display: inline-block; cursor: pointer; }
+.comp-thumb { width: 44px; height: 44px; border-radius: 10px; object-fit: cover; border: 2px solid var(--border); transition: transform 0.2s, border-color 0.2s; display: block; }
+.comp-preview-wrap:hover .comp-thumb { transform: scale(1.08); border-color: var(--amber-400); }
+.comp-hover-label { position: absolute; inset: 0; border-radius: 10px; background: rgba(180,83,9,0.65); color: white; font-size: 10px; font-weight: 800; display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s; letter-spacing: .05em; }
+.comp-preview-wrap:hover .comp-hover-label { opacity: 1; }
+.vt-empty { text-align:center; padding:40px; color:var(--muted); font-size:13px; }
+
+/* Lightbox */
+.lightbox { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.82); z-index: 9999; align-items: center; justify-content: center; }
+.lightbox.show { display: flex; }
+.lightbox img { max-width: 90vw; max-height: 85vh; border-radius: 12px; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
+.lightbox-close { position: absolute; top: 20px; right: 24px; color: white; font-size: 28px; cursor: pointer; line-height: 1; }
+</style>
+
+<section class="page-header">
+  <h2>Viáticos</h2>
+  <p>{% if is_readonly %}Comprobantes y gastos registrados por los conductores.{% else %}Registro de gastos y comprobantes durante la ruta.{% endif %}</p>
+</section>
+
+{% if not is_readonly %}
+<div class="card">
+  <h3>Nuevo viático</h3>
+  <form method="post" enctype="multipart/form-data" id="vtForm">
+    <div class="vt-form-grid">
+
+      <label>Viaje
+        <select name="viaje_id" required>
+          {% for item in viajes %}
+          <option value="{{ item.id }}">#{{ item.id }} — {{ item.ciudad_origen }} / {{ item.ciudad_destino }}</option>
+          {% endfor %}
+        </select>
+      </label>
+
+      <label>Conductor
+        <select name="conductor_id" required>
+          {% for item in conductores %}
+          <option value="{{ item.id }}" {% if current_user.rol == 'Conductor' and current_user.conductor_id == item.id %}selected{% endif %}>{{ item.nombre_completo }}</option>
+          {% endfor %}
+        </select>
+      </label>
+
+      <label>Tipo de gasto
+        <select name="tipo_gasto">
+          <option>Alimentacion</option>
+          <option>Hospedaje</option>
+          <option>Peajes</option>
+          <option>Otros gastos operativos</option>
+        </select>
+      </label>
+
+      <label>Valor (COP)
+        <input type="number" step="0.01" name="valor_gasto" placeholder="Ej: 45000" required>
+      </label>
+
+      <label>Ciudad
+        <input name="ciudad" placeholder="Ej: Medellin" required>
+      </label>
+
+      <label>Fecha y hora
+        <input type="datetime-local" name="fecha_gasto" required>
+      </label>
+
+      <label class="full">Comprobante (foto o PDF)
+        <div class="upload-zone" id="uploadZone">
+          <input type="file" name="comprobante_file" id="comprobanteInput"
+                 accept=".jpg,.jpeg,.png,.gif,.webp,.pdf"
+                 onchange="previewFile(this)">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="17 8 12 3 7 8"/>
+            <line x1="12" y1="3" x2="12" y2="15"/>
+          </svg>
+          <div class="uz-label">Haz clic o arrastra tu comprobante aqui</div>
+          <div class="uz-hint">JPG, PNG, PDF — max 5 MB</div>
+        </div>
+        <div class="upload-preview" id="uploadPreview">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          <span id="uploadFileName">archivo.jpg</span>
+          <button type="button" onclick="clearFile()">x</button>
+        </div>
+      </label>
+
+      <label class="full">Observaciones
+        <textarea name="observaciones" placeholder="Detalle adicional del gasto..."></textarea>
+      </label>
+
+    </div>
+    <button type="submit" class="vt-submit">Guardar viático</button>
+  </form>
+</div>
+{% endif %}
+
+<!-- Tabla -->
+<div class="card" style="margin-top:28px;">
+  <h3>
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+    Viáticos registrados
+    <span style="margin-left:auto;font-size:11px;font-weight:700;padding:3px 12px;border-radius:50px;background:rgba(245,158,11,.10);color:var(--amber-700);border:1px solid rgba(245,158,11,.20);text-transform:none;letter-spacing:0;">{{ items|length }} registros</span>
+  </h3>
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Conductor</th>
+        <th>Ruta</th>
+        <th>Tipo</th>
+        <th>Valor</th>
+        <th>Ciudad</th>
+        <th>Fecha</th>
+        <th>Observaciones</th>
+        <th>Comprobante</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in items %}
+      <tr>
+        <td style="color:var(--muted);font-size:12px;font-weight:700;">{{ item.id }}</td>
+        <td><strong>{{ item.conductor }}</strong></td>
+        <td><span style="font-size:12px;color:var(--text-mid)">{{ item.ciudad_origen }} → {{ item.ciudad_destino }}</span></td>
+        <td>
+          {% set t = item.tipo_gasto %}
+          {% if 'Aliment' in t %}<span class="tipo-chip tc-ali">🍽 Alimentación</span>
+          {% elif 'Hospedaje' in t %}<span class="tipo-chip tc-hos">🏨 Hospedaje</span>
+          {% elif 'Peaje' in t %}<span class="tipo-chip tc-pea">🛣 Peajes</span>
+          {% else %}<span class="tipo-chip tc-otr">📋 Otros</span>{% endif %}
+        </td>
+        <td><strong style="color:var(--amber-700);">$ {{ "{:,.0f}".format(item.valor_gasto|float).replace(",",".") }}</strong></td>
+        <td style="font-size:12px;color:var(--muted)">{{ item.ciudad }}</td>
+        <td style="font-size:12px;color:var(--muted);white-space:nowrap">
+          {% if item.fecha_gasto %}{{ item.fecha_gasto | fecha_es if item.fecha_gasto else '—' }}{% else %}—{% endif %}
+        </td>
+        <td style="font-size:12px;color:var(--text-mid);max-width:160px;">
+          <span title="{{ item.observaciones or '' }}" style="display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:150px;">{{ item.observaciones or '—' }}</span>
+        </td>
+        <td>
+          {% if item.comprobante %}
+            {% if item.comprobante.endswith('.pdf') %}
+              <a href="{{ url_for('static', filename=item.comprobante) }}" target="_blank"
+                 style="display:inline-flex;align-items:center;gap:5px;font-size:11.5px;color:var(--amber-700);font-weight:700;padding:4px 10px;border-radius:8px;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);text-decoration:none;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                PDF
+              </a>
+            {% else %}
+              <div class="comp-preview-wrap" onclick="openLightbox('{{ url_for('static', filename=item.comprobante) }}')">
+                <img src="{{ url_for('static', filename=item.comprobante) }}"
+                     class="comp-thumb" alt="Comprobante">
+                <div class="comp-hover-label">Ver</div>
+              </div>
+            {% endif %}
+          {% else %}
+            <span style="color:var(--muted);font-size:12px;">—</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="9" style="text-align:center;padding:40px;color:var(--muted);">Sin viáticos registrados</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- Lightbox -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <span class="lightbox-close">×</span>
+  <img id="lightboxImg" src="" alt="Comprobante">
+</div>
+
+<script>
+function previewFile(input) {
+  const preview = document.getElementById('uploadPreview');
+  const fname   = document.getElementById('uploadFileName');
+  if (input.files && input.files[0]) {
+    preview.classList.add('show');
+    fname.textContent = input.files[0].name;
+  }
+}
+function clearFile() {
+  document.getElementById('comprobanteInput').value = '';
+  document.getElementById('uploadPreview').classList.remove('show');
+}
+// Drag & drop styling
+const zone = document.getElementById('uploadZone');
+zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('dragover'); });
+zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+zone.addEventListener('drop', e => { e.preventDefault(); zone.classList.remove('dragover'); });
+
+function openLightbox(src) {
+  document.getElementById('lightboxImg').src = src;
+  document.getElementById('lightbox').classList.add('show');
+}
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('show');
+}
+</script>
+{% endblock %}

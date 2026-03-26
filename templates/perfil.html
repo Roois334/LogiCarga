@@ -1,0 +1,450 @@
+{% extends 'base.html' %}
+{% block title %}Mi Perfil | LogiCarga{% endblock %}
+{% block page_title %}Mi Perfil{% endblock %}
+{% block content %}
+
+<style>
+/* ═══ PERFIL ══════════════════════════════════════════════════════ */
+.perfil-page { animation: fadeUp 0.35s ease both; }
+
+/* HERO */
+.perfil-hero {
+  position: relative;
+  background: linear-gradient(135deg, #1c1009 0%, #2d1a0a 50%, #1c1009 100%);
+  border-radius: 22px; padding: 44px 44px; margin-bottom: 24px;
+  overflow: hidden; border: 1px solid rgba(251,191,36,0.15);
+}
+.perfil-hero-bg {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 0% 0%, rgba(217,119,6,.22) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 80% at 100% 100%, rgba(120,53,15,.15) 0%, transparent 60%);
+  pointer-events: none;
+}
+.perfil-hero-content { position: relative; z-index: 1; display: flex; align-items: center; gap: 30px; }
+.perfil-avatar-wrap { position: relative; flex-shrink: 0; }
+.perfil-avatar-ring {
+  width: 96px; height: 96px; border-radius: 50%;
+  background: linear-gradient(135deg, #f59e0b, #d97706, #b45309);
+  padding: 3px; box-shadow: 0 0 0 4px rgba(251,191,36,.15), 0 8px 32px rgba(217,119,6,.4);
+}
+.perfil-avatar-inner {
+  width: 100%; height: 100%; border-radius: 50%;
+  background: #1c1009; display: flex; align-items: center; justify-content: center;
+  font-size: 38px; font-weight: 800; color: #fbbf24; font-family: 'Sora', sans-serif;
+}
+.perfil-avatar-badge {
+  position: absolute; bottom: 2px; right: 2px;
+  width: 26px; height: 26px; border-radius: 50%;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  border: 2px solid #1c1009; display: flex; align-items: center; justify-content: center; color: white;
+}
+.perfil-nombre { font-size: 30px; font-weight: 800; color: #fef9ed; margin: 0 0 10px; letter-spacing: -.5px; }
+.perfil-rol-chip {
+  display: inline-flex; align-items: center; gap: 7px;
+  background: rgba(251,191,36,.12); border: 1px solid rgba(251,191,36,.25);
+  color: #fbbf24; font-size: 13px; font-weight: 700;
+  padding: 5px 14px; border-radius: 50px; margin-bottom: 8px;
+}
+.prc-dot { width: 7px; height: 7px; border-radius: 50%; background: #10b981; animation: pulse-green 2s infinite; }
+.perfil-correo { font-size: 14px; color: rgba(254,243,199,.5); margin: 0; }
+@keyframes pulse-green { 0%,100%{box-shadow:0 0 0 0 rgba(16,185,129,.5)} 50%{box-shadow:0 0 0 5px rgba(16,185,129,0)} }
+
+/* GRID */
+.perfil-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+@media(max-width:900px){ .perfil-grid{grid-template-columns:1fr;} .pc-password{grid-column:span 1 !important;} .pwd-grid{grid-template-columns:1fr !important;} .perfil-hero-content{flex-direction:column;text-align:center;} }
+
+/* CARDS */
+.perfil-card {
+  background: var(--white); border: 1.5px solid var(--border);
+  border-radius: 18px; padding: 24px;
+  box-shadow: 0 2px 12px var(--shadow); animation: fadeUp .35s ease both;
+}
+.pc-header {
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 20px; padding-bottom: 14px; border-bottom: 2px solid var(--amber-100);
+}
+.pc-header-icon {
+  width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
+  background: linear-gradient(135deg, var(--amber-100), var(--amber-200));
+  display: flex; align-items: center; justify-content: center; color: var(--amber-700);
+}
+.pc-header h3 { margin: 0; font-size: 12px; font-weight: 800; letter-spacing: .10em; text-transform: uppercase; color: var(--amber-700); }
+
+/* INFO FIELDS */
+.pc-fields { display: flex; flex-direction: column; gap: 12px; }
+.pc-field {
+  display: flex; flex-direction: column; gap: 4px;
+  padding: 13px 15px; border-radius: 12px;
+  background: var(--off-white); border: 1px solid var(--border);
+  transition: border-color .18s, background .18s;
+}
+.pc-field:hover { border-color: var(--amber-300); background: var(--cream); }
+.pcf-label { display: flex; align-items: center; gap: 6px; font-size: 10.5px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .07em; }
+.pcf-value { font-size: 15px; font-weight: 600; color: var(--text); }
+.pcf-pwd { font-family: 'JetBrains Mono', monospace; letter-spacing: 3px; color: var(--muted); }
+.role-tag { display: inline-block; padding: 3px 12px; border-radius: 50px; font-size: 12px; font-weight: 700; }
+.role-administrador { background: rgba(245,158,11,.12); color: var(--amber-700); border: 1px solid rgba(245,158,11,.25); }
+.role-conductor    { background: rgba(16,185,129,.10); color: #065f46; border: 1px solid rgba(16,185,129,.25); }
+.role-supervisor   { background: rgba(99,102,241,.10); color: #4338ca; border: 1px solid rgba(99,102,241,.25); }
+
+/* ACCIONES RÁPIDAS */
+.quick-actions { display: flex; flex-direction: column; gap: 8px; }
+.quick-action-btn {
+  display: flex; align-items: center; gap: 14px; padding: 13px 16px; border-radius: 12px;
+  background: var(--off-white); border: 1.5px solid var(--border); color: var(--text);
+  text-decoration: none; transition: all .18s;
+}
+.quick-action-btn:hover { background: var(--cream); border-color: var(--amber-300); transform: translateX(3px); box-shadow: 0 4px 14px var(--shadow); }
+.quick-action-btn svg:first-child { color: var(--amber-600); flex-shrink: 0; }
+.qa-text { flex: 1; }
+.qa-text strong { display: block; font-size: 14px; font-weight: 700; margin-bottom: 1px; }
+.qa-text span { font-size: 12px; color: var(--muted); }
+.quick-action-btn svg:last-child { color: var(--muted); flex-shrink: 0; }
+.qa-primary { background: linear-gradient(135deg, rgba(245,158,11,.08), rgba(217,119,6,.05)); border-color: rgba(245,158,11,.25); }
+.qa-primary:hover { border-color: var(--amber-500); }
+.qa-danger { border-color: rgba(244,63,94,.15); }
+.qa-danger:hover { background: rgba(244,63,94,.05); border-color: rgba(244,63,94,.30); }
+.qa-danger:hover svg:first-child { color: #f43f5e; }
+
+/* CAMBIAR CONTRASEÑA */
+.pc-password { grid-column: span 2; }
+.pwd-flash { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-radius: 12px; font-size: 13.5px; font-weight: 600; margin-bottom: 20px; animation: fadeUp .3s ease; }
+.pwd-flash--success { background: rgba(16,185,129,.10); color: #065f46; border: 1px solid rgba(16,185,129,.25); }
+.pwd-flash--error   { background: rgba(244,63,94,.08);  color: #be123c; border: 1px solid rgba(244,63,94,.22); }
+.pwd-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-bottom: 22px; }
+.pwd-field { display: flex; flex-direction: column; gap: 7px; }
+.pwd-label { display: flex; align-items: center; gap: 7px; font-size: 10.5px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
+.pwd-input-wrap {
+  display: flex; align-items: center;
+  background: var(--off-white); border: 1.5px solid var(--border); border-radius: 12px;
+  transition: border-color .2s, box-shadow .2s, background .2s;
+}
+.pwd-input-wrap:focus-within { border-color: var(--amber-400); box-shadow: 0 0 0 3px rgba(251,191,36,.12); background: var(--cream); }
+.pwd-input-error { border-color: rgba(244,63,94,.5) !important; box-shadow: 0 0 0 3px rgba(244,63,94,.08) !important; }
+.pwd-input { flex: 1; min-width: 0; padding: 12px 8px 12px 14px; background: transparent; border: none; outline: none; color: var(--text); font-size: 14px; font-family: 'Sora', sans-serif; }
+.pwd-eye { flex-shrink: 0; width: 34px; height: 34px; margin-right: 6px; padding: 0; border: none !important; outline: none !important; box-shadow: none !important; background: transparent !important; cursor: pointer; color: rgba(180,130,60,.4); display: flex; align-items: center; justify-content: center; transition: color .2s, transform .2s; }
+.pwd-eye:hover { color: var(--amber-600); transform: scale(1.15); }
+.pwd-eye svg { display: block; pointer-events: none; }
+.pwd-err { font-size: 11.5px; font-weight: 600; color: #f43f5e; min-height: 16px; display: block; }
+.pwd-strength-wrap { height: 4px; border-radius: 4px; background: var(--border); overflow: hidden; margin-top: 2px; }
+.pwd-strength-bar { height: 100%; width: 0; border-radius: 4px; transition: width .35s, background .35s; }
+.pwd-strength-label { font-size: 11px; font-weight: 700; min-height: 16px; display: block; }
+.pwd-footer { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px; padding-top: 18px; border-top: 1.5px solid var(--amber-100); }
+.pwd-rules { display: flex; flex-wrap: wrap; gap: 10px; }
+.rule { font-size: 12px; font-weight: 600; color: var(--muted); padding: 4px 10px; border-radius: 50px; background: var(--off-white); border: 1px solid var(--border); transition: all .25s; }
+.rule-ok { color: #065f46; background: rgba(16,185,129,.08); border-color: rgba(16,185,129,.25); }
+.pwd-submit-btn { display: flex; align-items: center; gap: 8px; padding: 11px 22px; border-radius: 12px; border: none; cursor: pointer; background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; font-size: 14px; font-weight: 700; font-family: 'Sora', sans-serif; box-shadow: 0 4px 18px rgba(217,119,6,.35); transition: transform .2s, box-shadow .2s, opacity .2s; white-space: nowrap; }
+.pwd-submit-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(217,119,6,.45); }
+.pwd-submit-btn:disabled { opacity: .7; cursor: not-allowed; transform: none; }
+@keyframes pwdSpin { to { transform: rotate(360deg); } }
+</style>
+
+<div class="perfil-page">
+
+  <!-- Hero -->
+  <div class="perfil-hero">
+    <div class="perfil-hero-bg"></div>
+    <div class="perfil-hero-content">
+      <div class="perfil-avatar-wrap">
+        <div class="perfil-avatar-ring">
+          <div class="perfil-avatar-inner">{{ current_user.nombre[0] | upper }}</div>
+        </div>
+        <div class="perfil-avatar-badge">
+          {% if current_user.rol == 'Administrador' %}
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          {% elif current_user.rol == 'Conductor' %}
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="1" y="9" width="18" height="9" rx="2"/><circle cx="6" cy="20" r="2"/><circle cx="15" cy="20" r="2"/></svg>
+          {% else %}
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          {% endif %}
+        </div>
+      </div>
+      <div>
+        <h1 class="perfil-nombre">{{ current_user.nombre }}</h1>
+        <div class="perfil-rol-chip">
+          <span class="prc-dot"></span>
+          {{ current_user.rol }}
+        </div>
+        <p class="perfil-correo">{{ current_user.correo }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Grid -->
+  <div class="perfil-grid">
+
+    <!-- Información de cuenta -->
+    <div class="perfil-card">
+      <div class="pc-header">
+        <div class="pc-header-icon">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+        </div>
+        <h3>Información de cuenta</h3>
+      </div>
+      <div class="pc-fields">
+        <div class="pc-field">
+          <span class="pcf-label">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+            Nombre completo
+          </span>
+          <span class="pcf-value">{{ current_user.nombre }}</span>
+        </div>
+        <div class="pc-field">
+          <span class="pcf-label">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+            Correo electrónico
+          </span>
+          <span class="pcf-value">{{ current_user.correo }}</span>
+        </div>
+        <div class="pc-field">
+          <span class="pcf-label">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            Rol de acceso
+          </span>
+          <span class="pcf-value">
+            <span class="role-tag role-{{ current_user.rol | lower }}">{{ current_user.rol }}</span>
+          </span>
+        </div>
+        <div class="pc-field">
+          <span class="pcf-label">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            Contraseña
+          </span>
+          <span class="pcf-value pcf-pwd">••••••••</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Acciones rápidas -->
+    <div class="perfil-card">
+      <div class="pc-header">
+        <div class="pc-header-icon">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        </div>
+        <h3>Acceso rápido</h3>
+      </div>
+      <div class="quick-actions">
+        <a href="{{ url_for('dashboard') }}" class="quick-action-btn qa-primary">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
+          <div class="qa-text"><strong>Dashboard</strong><span>Ver estadísticas generales</span></div>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
+        </a>
+        {% if 'mis_viajes' in permissions %}
+        <a href="{{ url_for('mis_viajes') }}" class="quick-action-btn">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 17H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v3"/><path d="M13 21l9-9-3-3-9 9v3h3z"/></svg>
+          <div class="qa-text"><strong>Mis Viajes</strong><span>Ver rutas asignadas</span></div>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
+        </a>
+        {% endif %}
+        {% if 'viajes' in permissions %}
+        <a href="{{ url_for('viajes') }}" class="quick-action-btn">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+          <div class="qa-text"><strong>Viajes</strong><span>Gestionar operaciones</span></div>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
+        </a>
+        {% endif %}
+        {% if 'reportes' in permissions %}
+        <a href="{{ url_for('reportes') }}" class="quick-action-btn">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          <div class="qa-text"><strong>Reportes</strong><span>Análisis de operaciones</span></div>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
+        </a>
+        {% endif %}
+        <a href="{{ url_for('logout') }}" class="quick-action-btn qa-danger">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          <div class="qa-text"><strong>Cerrar sesión</strong><span>Salir de la plataforma</span></div>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
+        </a>
+      </div>
+    </div>
+
+    <!-- Cambiar contraseña -->
+    <div class="perfil-card pc-password">
+      <div class="pc-header">
+        <div class="pc-header-icon">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </div>
+        <h3>Cambiar contraseña</h3>
+      </div>
+
+      <div id="pwdFlash" style="display:none;" class="pwd-flash"></div>
+
+      <form id="pwdForm" method="post" action="{{ url_for('cambiar_password') }}" novalidate>
+        <div class="pwd-grid">
+          <div class="pwd-field">
+            <label class="pwd-label" for="pwd_actual">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              Contraseña actual
+            </label>
+            <div class="pwd-input-wrap">
+              <input type="password" id="pwd_actual" name="pwd_actual" placeholder="Tu contraseña actual" class="pwd-input" autocomplete="current-password">
+              <button type="button" class="pwd-eye" onclick="togglePwd('pwd_actual','eye1')">
+                <svg id="eye1_show" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                <svg id="eye1_hide" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+              </button>
+            </div>
+            <span class="pwd-err" id="err_actual"></span>
+          </div>
+          <div class="pwd-field">
+            <label class="pwd-label" for="pwd_nueva">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              Nueva contraseña
+            </label>
+            <div class="pwd-input-wrap">
+              <input type="password" id="pwd_nueva" name="pwd_nueva" placeholder="Mínimo 6 caracteres" class="pwd-input" autocomplete="new-password" oninput="checkPwdStrength(this.value)">
+              <button type="button" class="pwd-eye" onclick="togglePwd('pwd_nueva','eye2')">
+                <svg id="eye2_show" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                <svg id="eye2_hide" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+              </button>
+            </div>
+            <div class="pwd-strength-wrap"><div class="pwd-strength-bar" id="pwdStrBar"></div></div>
+            <span class="pwd-strength-label" id="pwdStrLabel"></span>
+            <span class="pwd-err" id="err_nueva"></span>
+          </div>
+          <div class="pwd-field">
+            <label class="pwd-label" for="pwd_confirm">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+              Confirmar contraseña
+            </label>
+            <div class="pwd-input-wrap">
+              <input type="password" id="pwd_confirm" name="pwd_confirm" placeholder="Repite la nueva contraseña" class="pwd-input" autocomplete="new-password" oninput="checkMatch()">
+              <button type="button" class="pwd-eye" onclick="togglePwd('pwd_confirm','eye3')">
+                <svg id="eye3_show" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                <svg id="eye3_hide" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+              </button>
+            </div>
+            <span class="pwd-err" id="err_confirm"></span>
+          </div>
+        </div>
+        <div class="pwd-footer">
+          <div class="pwd-rules">
+            <span id="rule_len"   class="rule">✗ Mínimo 6 caracteres</span>
+            <span id="rule_match" class="rule">✗ Contraseñas coinciden</span>
+            <span id="rule_diff"  class="rule">✗ Diferente a la actual</span>
+          </div>
+          <button type="button" class="pwd-submit-btn" id="pwdSubmitBtn" onclick="submitPwd()">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            Actualizar contraseña
+          </button>
+        </div>
+      </form>
+    </div>
+
+  </div>
+</div>
+
+<script>
+function togglePwd(inputId, eyeId) {
+  var inp  = document.getElementById(inputId);
+  var show = document.getElementById(eyeId + '_show');
+  var hide = document.getElementById(eyeId + '_hide');
+  var isHidden = inp.type === 'password';
+  inp.type = isHidden ? 'text' : 'password';
+  show.style.display = isHidden ? 'none' : '';
+  hide.style.display = isHidden ? '' : 'none';
+}
+function checkPwdStrength(v) {
+  var bar = document.getElementById('pwdStrBar');
+  var lbl = document.getElementById('pwdStrLabel');
+  var ruleLen = document.getElementById('rule_len');
+  if (!v) { bar.style.width = '0'; lbl.textContent = ''; ruleLen.className = 'rule'; ruleLen.textContent = '✗ Mínimo 6 caracteres'; return; }
+  var s = 0;
+  if (v.length >= 6)  s++;
+  if (v.length >= 10) s++;
+  if (/[A-Z]/.test(v)) s++;
+  if (/[0-9]/.test(v)) s++;
+  var widths = ['15%','35%','60%','80%','100%'];
+  var colors = ['#ef4444','#f97316','#f59e0b','#fbbf24','#10b981'];
+  var labels = ['Muy débil','Débil','Regular','Buena','Muy fuerte'];
+  bar.style.width = widths[Math.min(s,4)];
+  bar.style.background = colors[Math.min(s,4)];
+  lbl.textContent = labels[Math.min(s,4)];
+  lbl.style.color = colors[Math.min(s,4)];
+  ruleLen.className = v.length >= 6 ? 'rule rule-ok' : 'rule';
+  ruleLen.textContent = v.length >= 6 ? '✓ Mínimo 6 caracteres' : '✗ Mínimo 6 caracteres';
+  checkMatch();
+}
+function checkMatch() {
+  var n = document.getElementById('pwd_nueva').value;
+  var c = document.getElementById('pwd_confirm').value;
+  var a = document.getElementById('pwd_actual').value;
+  var ruleMatch = document.getElementById('rule_match');
+  var ruleDiff  = document.getElementById('rule_diff');
+  var matched = c.length > 0 && n === c;
+  ruleMatch.className = matched ? 'rule rule-ok' : 'rule';
+  ruleMatch.textContent = matched ? '✓ Contraseñas coinciden' : '✗ Contraseñas coinciden';
+  var diff = n.length > 0 && n !== a;
+  ruleDiff.className = diff ? 'rule rule-ok' : 'rule';
+  ruleDiff.textContent = diff ? '✓ Diferente a la actual' : '✗ Diferente a la actual';
+}
+function showFlash(msg, type) {
+  var el = document.getElementById('pwdFlash');
+  el.className = 'pwd-flash pwd-flash--' + type;
+  el.textContent = msg;
+  el.style.display = 'flex';
+  setTimeout(function(){ el.style.display = 'none'; }, 5000);
+}
+function submitPwd() {
+  var actual  = document.getElementById('pwd_actual').value.trim();
+  var nueva   = document.getElementById('pwd_nueva').value;
+  var confirm = document.getElementById('pwd_confirm').value;
+  var ok = true;
+  ['err_actual','err_nueva','err_confirm'].forEach(function(id){ document.getElementById(id).textContent = ''; });
+  ['pwd_actual','pwd_nueva','pwd_confirm'].forEach(function(id){ document.getElementById(id).closest('.pwd-input-wrap').classList.remove('pwd-input-error'); });
+  if (!actual) {
+    document.getElementById('err_actual').textContent = 'Ingresa tu contraseña actual';
+    document.getElementById('pwd_actual').closest('.pwd-input-wrap').classList.add('pwd-input-error');
+    ok = false;
+  }
+  if (nueva.length < 6) {
+    document.getElementById('err_nueva').textContent = 'Mínimo 6 caracteres';
+    document.getElementById('pwd_nueva').closest('.pwd-input-wrap').classList.add('pwd-input-error');
+    ok = false;
+  }
+  if (nueva === actual && actual) {
+    document.getElementById('err_nueva').textContent = 'Debe ser diferente a la actual';
+    document.getElementById('pwd_nueva').closest('.pwd-input-wrap').classList.add('pwd-input-error');
+    ok = false;
+  }
+  if (nueva !== confirm) {
+    document.getElementById('err_confirm').textContent = 'Las contraseñas no coinciden';
+    document.getElementById('pwd_confirm').closest('.pwd-input-wrap').classList.add('pwd-input-error');
+    ok = false;
+  }
+  if (!ok) return;
+  var btn = document.getElementById('pwdSubmitBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="animation:pwdSpin .9s linear infinite"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Guardando...';
+  fetch('{{ url_for("cambiar_password") }}', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+    body: new URLSearchParams({pwd_actual: actual, pwd_nueva: nueva, pwd_confirm: confirm})
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(data){
+    if (data.ok) {
+      showFlash(data.msg || 'Contraseña actualizada correctamente.', 'success');
+      document.getElementById('pwdForm').reset();
+      document.getElementById('pwdStrBar').style.width = '0';
+      document.getElementById('pwdStrLabel').textContent = '';
+      ['rule_len','rule_match','rule_diff'].forEach(function(id){
+        var el = document.getElementById(id); el.className = 'rule';
+        el.textContent = el.textContent.replace('✓','✗');
+      });
+    } else {
+      showFlash(data.msg || 'Error al cambiar la contraseña.', 'error');
+      if (data.field === 'actual') {
+        document.getElementById('err_actual').textContent = data.msg;
+        document.getElementById('pwd_actual').closest('.pwd-input-wrap').classList.add('pwd-input-error');
+      }
+    }
+  })
+  .catch(function(){ showFlash('Error de conexión. Intenta de nuevo.', 'error'); })
+  .finally(function(){
+    btn.disabled = false;
+    btn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Actualizar contraseña';
+  });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,396 @@
+{% extends 'base.html' %}
+{% block title %}Conductores | LogiCarga{% endblock %}
+{% block content %}
+
+<style>
+/* ══════════════════════════════════════════════════
+   CONDUCTORES — diseño compacto coherente LogiCarga
+══════════════════════════════════════════════════ */
+.cond-hero {
+  display: flex; align-items: center; gap: 16px;
+  background: linear-gradient(135deg, var(--amber-800) 0%, var(--amber-600) 60%, var(--amber-500) 100%);
+  border-radius: 18px; padding: 22px 28px; margin-bottom: 24px;
+  box-shadow: 0 8px 32px rgba(120,53,15,0.20);
+  position: relative; overflow: hidden;
+}
+.cond-hero::before {
+  content: ''; position: absolute; right: -30px; top: -30px;
+  width: 140px; height: 140px; border-radius: 50%;
+  background: rgba(255,255,255,0.07);
+}
+.cond-hero-icon {
+  width: 52px; height: 52px; border-radius: 15px; flex-shrink: 0;
+  background: rgba(255,255,255,0.15); backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center;
+  border: 1.5px solid rgba(255,255,255,0.20);
+}
+.cond-hero-text h2 { margin: 0 0 3px; font-size: 20px; font-weight: 800; color: #fff; }
+.cond-hero-text p  { margin: 0; font-size: 13px; color: rgba(255,255,255,0.78); }
+
+.flash-msg {
+  padding: 12px 18px; border-radius: 12px; font-size: 13px; font-weight: 600;
+  margin-bottom: 16px; display: flex; align-items: center; gap: 10px;
+}
+.flash-success { background: var(--success-bg); color: var(--success-text); border: 1px solid #a7f3d0; }
+.flash-error   { background: var(--error-bg);   color: var(--error-text);   border: 1px solid #fecdd3; }
+
+.cond-form-card {
+  background: #fff; border-radius: 18px;
+  border: 1.5px solid var(--border);
+  box-shadow: 0 4px 24px var(--shadow);
+  margin-bottom: 24px; overflow: hidden;
+}
+.cond-form-header {
+  padding: 18px 24px 16px;
+  border-bottom: 1.5px solid var(--amber-100);
+  display: flex; align-items: center; gap: 12px;
+}
+.cond-form-header-icon {
+  width: 36px; height: 36px; border-radius: 10px;
+  background: linear-gradient(135deg, var(--amber-100), var(--amber-200));
+  display: flex; align-items: center; justify-content: center;
+}
+.cond-form-header h3 { margin: 0; font-size: 15px; font-weight: 800; color: var(--amber-800); }
+.cond-form-header p  { margin: 2px 0 0; font-size: 12px; color: var(--muted); }
+.cond-form-body { padding: 20px 24px 24px; }
+
+.cond-section-label {
+  font-size: 10.5px; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 0.10em; color: var(--amber-600);
+  margin: 0 0 12px; display: flex; align-items: center; gap: 8px;
+}
+.cond-section-label::after { content: ''; flex: 1; height: 1px; background: var(--amber-100); }
+
+.cond-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 18px; }
+.cond-grid.cols3 { grid-template-columns: 1fr 1fr 1fr; }
+.cond-field { display: flex; flex-direction: column; gap: 5px; font-size: 12.5px; font-weight: 600; color: var(--text-mid); }
+.cond-field.full { grid-column: 1 / -1; }
+.cond-field input,
+.cond-field select {
+  padding: 9px 12px; border-radius: 10px;
+  border: 1.5px solid var(--border);
+  font-size: 13px; font-family: inherit;
+  background: var(--off-white); color: var(--text);
+  transition: border-color 0.18s, box-shadow 0.18s; outline: none;
+}
+.cond-field input:focus,
+.cond-field select:focus {
+  border-color: var(--amber-400);
+  box-shadow: 0 0 0 3px rgba(245,158,11,0.12);
+  background: #fff;
+}
+.cond-field input::placeholder { color: var(--muted); }
+.req { color: #ef4444; margin-left: 2px; }
+
+.cond-actions {
+  display: flex; justify-content: flex-end; gap: 10px;
+  padding-top: 16px; border-top: 1.5px solid var(--amber-100);
+}
+.btn-reset {
+  padding: 10px 20px; border-radius: 11px;
+  border: 1.5px solid var(--border); background: #fff;
+  font-size: 13px; font-weight: 700; color: var(--text-mid);
+  cursor: pointer; transition: all 0.18s;
+}
+.btn-reset:hover { border-color: var(--amber-300); color: var(--amber-700); }
+.btn-guardar {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 24px; border-radius: 11px; border: none;
+  background: linear-gradient(135deg, var(--amber-600), var(--amber-500));
+  color: #fff; font-size: 13px; font-weight: 800;
+  cursor: pointer; box-shadow: 0 4px 14px rgba(217,119,6,0.35); transition: all 0.2s;
+}
+.btn-guardar:hover { transform: translateY(-1px); box-shadow: 0 8px 22px rgba(217,119,6,0.45); }
+
+.cond-list-card {
+  background: #fff; border-radius: 18px;
+  border: 1.5px solid var(--border);
+  box-shadow: 0 4px 24px var(--shadow); overflow: hidden;
+}
+.cond-list-header {
+  padding: 18px 24px 16px;
+  border-bottom: 1.5px solid var(--amber-100);
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+}
+.cond-list-header h3 { margin: 0; font-size: 15px; font-weight: 800; color: var(--amber-800); }
+.cond-count {
+  background: linear-gradient(135deg, var(--amber-100), var(--amber-200));
+  color: var(--amber-800); font-size: 11px; font-weight: 800;
+  padding: 3px 10px; border-radius: 20px; border: 1px solid var(--amber-300);
+}
+
+.cond-search-wrap { padding: 14px 24px; border-bottom: 1px solid var(--amber-50); }
+.cond-search {
+  width: 100%; padding: 9px 14px 9px 38px;
+  border-radius: 10px; border: 1.5px solid var(--border);
+  font-size: 13px; font-family: inherit; background: var(--off-white);
+  outline: none; transition: border-color 0.18s, box-shadow 0.18s;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='15' height='15' viewBox='0 0 24 24' fill='none' stroke='%238a7060' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: 12px center; box-sizing: border-box;
+}
+.cond-search:focus { border-color: var(--amber-400); box-shadow: 0 0 0 3px rgba(245,158,11,0.10); background-color: #fff; }
+
+.cond-table-wrap { overflow-x: auto; }
+.cond-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.cond-table thead tr {
+  background: linear-gradient(90deg, var(--cream), var(--amber-50));
+  border-bottom: 1.5px solid var(--amber-100);
+}
+.cond-table th {
+  padding: 11px 14px; text-align: left;
+  font-size: 10.5px; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--amber-700); white-space: nowrap;
+}
+.cond-table tbody tr { border-bottom: 1px solid var(--amber-50); transition: background 0.14s; }
+.cond-table tbody tr:hover { background: var(--cream); }
+.cond-table tbody tr:last-child { border-bottom: none; }
+.cond-table td { padding: 11px 14px; vertical-align: middle; }
+
+.lic-badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 32px; height: 20px; padding: 0 7px;
+  background: linear-gradient(135deg, var(--amber-100), var(--amber-200));
+  border: 1px solid var(--amber-300); border-radius: 5px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10.5px; font-weight: 800; color: var(--amber-800);
+}
+.est-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700;
+}
+.est-activo   { background:#ecfdf5; color:#065f46; border:1px solid #a7f3d0; }
+.est-inactivo { background:#fef2f2; color:#991b1b; border:1px solid #fecdd3; }
+
+.cond-avatar {
+  width: 34px; height: 34px; border-radius: 10px; flex-shrink: 0;
+  background: linear-gradient(135deg, var(--amber-500), var(--amber-700));
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: 13px; font-weight: 800;
+}
+.cond-name-cell { display: flex; align-items: center; gap: 10px; }
+.cond-name-wrap strong { font-size: 13px; color: var(--text); display: block; }
+.cond-contact { display: flex; flex-direction: column; gap: 1px; }
+.cond-contact strong { font-size: 12.5px; }
+.cond-contact span   { font-size: 11px; color: var(--muted); }
+.no-data { font-size: 12px; color: var(--muted); }
+.cond-empty { padding: 48px 24px; text-align: center; color: var(--muted); }
+.cond-empty p { font-size: 14px; margin: 8px 0 0; }
+
+@media (max-width: 768px) {
+  .cond-grid, .cond-grid.cols3 { grid-template-columns: 1fr; }
+  .cond-field.full { grid-column: 1; }
+}
+</style>
+
+<!-- HERO -->
+<div class="cond-hero">
+  <div class="cond-hero-icon">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+      <circle cx="9" cy="7" r="4"/>
+      <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+      <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+    </svg>
+  </div>
+  <div class="cond-hero-text">
+    <h2>Conductores</h2>
+    <p>Registro de personal, licencias y datos de contacto</p>
+  </div>
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% for category, message in messages %}
+    <div class="flash-msg flash-{{ category }}">
+      {% if category == 'success' %}
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      {% else %}
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      {% endif %}
+      {{ message }}
+    </div>
+  {% endfor %}
+{% endwith %}
+
+<!-- FORMULARIO NUEVO CONDUCTOR -->
+<div class="cond-form-card">
+  <div class="cond-form-header">
+    <div class="cond-form-header-icon">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--amber-700)" stroke-width="2.2">
+        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+        <circle cx="9" cy="7" r="4"/>
+        <line x1="19" y1="8" x2="19" y2="14"/><line x1="16" y1="11" x2="22" y2="11"/>
+      </svg>
+    </div>
+    <div>
+      <h3>Nuevo conductor</h3>
+      <p>Completa la información para registrar al conductor en el sistema</p>
+    </div>
+  </div>
+  <div class="cond-form-body">
+    <form method="post" id="formConductor">
+      <input type="hidden" name="usuario_id" value="">
+
+      <!-- DATOS PERSONALES -->
+      <div class="cond-section-label">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+        Datos personales
+      </div>
+      <div class="cond-grid">
+        <div class="cond-field full">
+          <label>Nombre completo <span class="req">*</span></label>
+          <input name="nombre_completo" placeholder="Ej: Carlos Andrés Ruiz López" required autocomplete="off">
+        </div>
+        <div class="cond-field">
+          <label>Teléfono</label>
+          <input name="telefono" placeholder="Ej: 3001234567" type="tel">
+        </div>
+        <div class="cond-field">
+          <label>Correo electrónico</label>
+          <input type="email" name="email" placeholder="conductor@correo.com">
+        </div>
+        <div class="cond-field">
+          <label>Ciudad</label>
+          <input name="ciudad" placeholder="Ej: Bogotá">
+        </div>
+        <div class="cond-field">
+          <label>Dirección</label>
+          <input name="direccion" placeholder="Ej: Cra 15 # 32-10">
+        </div>
+      </div>
+
+      <!-- LICENCIA -->
+      <div class="cond-section-label">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+        Licencia de conducción
+      </div>
+      <div class="cond-grid cols3">
+        <div class="cond-field">
+          <label>N.° de licencia <span class="req">*</span></label>
+          <input name="numero_licencia" placeholder="Ej: 123456789" required>
+        </div>
+        <div class="cond-field">
+          <label>Categoría</label>
+          <select name="tipo_licencia">
+            <option value="">-- Seleccionar --</option>
+            <option value="C1">C1 — Camiones rígidos hasta 3.5 t</option>
+            <option value="C2">C2 — Camiones rígidos más de 3.5 t</option>
+            <option value="C3">C3 — Tractocamiones y articulados</option>
+            <option value="B1">B1 — Automóviles y camperos</option>
+            <option value="B2">B2 — Buses y busetas</option>
+            <option value="B3">B3 — Buses articulados</option>
+            <option value="A1">A1 — Motocicletas hasta 125 cc</option>
+            <option value="A2">A2 — Motocicletas más de 125 cc</option>
+          </select>
+        </div>
+        <div class="cond-field">
+          <label>Vencimiento de licencia</label>
+          <input type="date" name="fecha_vencimiento_licencia" id="fechaVenc">
+        </div>
+      </div>
+
+      <div class="cond-actions">
+        <button type="button" class="btn-reset" onclick="document.getElementById('formConductor').reset()">Limpiar</button>
+        <button type="submit" class="btn-guardar">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          Guardar conductor
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- LISTADO -->
+<div class="cond-list-card">
+  <div class="cond-list-header">
+    <h3>Listado de conductores</h3>
+    <span class="cond-count">{{ items | length }} registrado{% if items | length != 1 %}s{% endif %}</span>
+  </div>
+  <div class="cond-search-wrap">
+    <input type="search" class="cond-search" id="searchCond" placeholder="Buscar por nombre, licencia, ciudad…" oninput="filtrarCond()">
+  </div>
+  <div class="cond-table-wrap">
+    <table class="cond-table" id="tablaCond">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Conductor</th>
+          <th>N.° Licencia</th>
+          <th>Categoría</th>
+          <th>Vence</th>
+          <th>Contacto</th>
+          <th>Ciudad</th>
+          <th>Estado</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in items %}
+        <tr>
+          <td><code style="font-size:11px;color:var(--muted);">{{ item.id }}</code></td>
+          <td>
+            <div class="cond-name-cell">
+              <div class="cond-avatar">{{ item.nombre_completo[0] | upper }}</div>
+              <div class="cond-name-wrap"><strong>{{ item.nombre_completo }}</strong></div>
+            </div>
+          </td>
+          <td><code style="font-size:12px;color:var(--text-mid);">{{ item.numero_licencia }}</code></td>
+          <td>
+            {% if item.tipo_licencia %}<span class="lic-badge">{{ item.tipo_licencia }}</span>
+            {% else %}<span class="no-data">—</span>{% endif %}
+          </td>
+          <td>
+            {% if item.fecha_vencimiento_licencia %}
+              <span class="lic-badge">{{ item.fecha_vencimiento_licencia | fecha_es }}</span>
+            {% else %}<span class="no-data">—</span>{% endif %}
+          </td>
+          <td>
+            <div class="cond-contact">
+              <strong>{{ item.telefono or '—' }}</strong>
+              {% if item.email %}<span>{{ item.email }}</span>{% endif %}
+            </div>
+          </td>
+          <td>{{ item.ciudad or '—' }}</td>
+          <td>
+            <span class="est-badge {% if item.estado == 'Activo' %}est-activo{% else %}est-inactivo{% endif %}">
+              <span style="width:6px;height:6px;border-radius:50%;background:currentColor;display:inline-block;"></span>
+              {{ item.estado }}
+            </span>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="8">
+          <div class="cond-empty">
+            <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#d6b88a" stroke-width="1.5">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+            <p>Sin conductores registrados todavía</p>
+          </div>
+        </td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+function filtrarCond() {
+  const q = document.getElementById('searchCond').value.toLowerCase();
+  document.querySelectorAll('#tablaCond tbody tr').forEach(row => {
+    row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
+  });
+}
+document.getElementById('formConductor').addEventListener('submit', function(e) {
+  const fv = document.getElementById('fechaVenc').value;
+  if (fv) {
+    const hoy = new Date(); hoy.setHours(0,0,0,0);
+    const fecha = new Date(fv + 'T00:00:00');
+    if (fecha < hoy) {
+      e.preventDefault();
+      alert('⚠️ La fecha de vencimiento de la licencia no puede ser anterior a hoy.');
+      document.getElementById('fechaVenc').focus();
+    }
+  }
+});
+</script>
+
+{% endblock %}

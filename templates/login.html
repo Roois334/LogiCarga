@@ -1,0 +1,786 @@
+{% extends 'base.html' %}
+{% block title %}Iniciar sesión | LogiCarga{% endblock %}
+{% block content %}
+
+<style>
+/* ── RESET ── */
+body { background: #080401 !important; overflow-x: hidden; }
+.topbar, .sidebar, .lc-header-back-visible, .topbar-back-chip,
+.main-layout > .flash-container:first-child { display: none !important; }
+.full-layout, .main-layout {
+  margin-left: 0 !important; padding: 0 !important;
+  min-height: 0 !important; background: transparent !important;
+}
+
+/* ── PÁGINA ── */
+.lp {
+  position: fixed; inset: 0;
+  display: flex; align-items: flex-start; justify-content: center;
+  background: #080401;
+  font-family: 'Sora', sans-serif;
+  overflow-y: auto; overflow-x: hidden; z-index: 9000;
+  padding: 80px 20px 40px;
+}
+
+/* ── FONDO ── */
+.lp-bg { position: absolute; inset: 0; pointer-events: none; z-index: 0; }
+.lp-orb {
+  position: absolute; border-radius: 50%;
+  filter: blur(120px); animation: lpOrb 12s ease-in-out infinite;
+}
+.lp-orb-1 { width: 700px; height: 700px; top: -200px; left: -150px; background: radial-gradient(circle, rgba(245,158,11,0.22) 0%, transparent 70%); }
+.lp-orb-2 { width: 500px; height: 500px; bottom: -120px; right: -100px; background: radial-gradient(circle, rgba(180,83,9,0.18) 0%, transparent 70%); animation-delay: 5s; }
+.lp-orb-3 { width: 350px; height: 350px; top: 35%; left: 55%; background: radial-gradient(circle, rgba(251,191,36,0.12) 0%, transparent 70%); animation-delay: 8s; }
+@keyframes lpOrb {
+  0%,100% { transform: scale(1) translate(0,0); opacity: 0.8; }
+  50%      { transform: scale(1.2) translate(15px,-15px); opacity: 1; }
+}
+.lp-grid {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(251,191,36,0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(251,191,36,0.035) 1px, transparent 1px);
+  background-size: 60px 60px;
+  animation: lpGrid 25s linear infinite;
+}
+@keyframes lpGrid { to { background-position: 60px 60px; } }
+.lp-canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+/* ── HEADER ── */
+.lp-header {
+  position: fixed; top: 0; left: 0; right: 0; height: 60px; z-index: 9999;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 36px;
+  background: rgba(8,4,1,0.85);
+  backdrop-filter: blur(28px);
+  border-bottom: 1px solid rgba(251,191,36,0.08);
+  animation: lpHdrIn 0.6s cubic-bezier(.22,1,.36,1) forwards;
+}
+@keyframes lpHdrIn { from { opacity:0; transform:translateY(-10px); } to { opacity:1; transform:translateY(0); } }
+.lp-hdr-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+.lp-hdr-logo {
+  width: 36px; height: 36px; border-radius: 10px;
+  background: linear-gradient(135deg, #f59e0b, #b45309);
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 3px 14px rgba(217,119,6,0.45);
+}
+.lp-hdr-name {
+  font-size: 16px; font-weight: 800;
+  background: linear-gradient(90deg, #fef3c7, #fbbf24);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.lp-hdr-back {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 7px 16px; border-radius: 50px;
+  font-size: 12px; font-weight: 700;
+  color: #c8a055;
+  border: 1px solid rgba(251,191,36,0.22);
+  background: rgba(251,191,36,0.06);
+  text-decoration: none;
+  transition: all 0.25s cubic-bezier(.22,1,.36,1);
+}
+.lp-hdr-back:hover {
+  color: #fef3c7; border-color: rgba(251,191,36,0.5);
+  background: rgba(251,191,36,0.12);
+  transform: translateX(-3px);
+  box-shadow: 0 0 20px rgba(251,191,36,0.1);
+}
+
+/* ── CARD ── */
+.lp-card {
+  position: relative; z-index: 10;
+  width: 100%; max-width: 460px;
+  background: linear-gradient(160deg,
+    rgba(22,11,3,0.98) 0%,
+    rgba(14,7,1,0.99) 100%
+  );
+  border: 1px solid rgba(251,191,36,0.14);
+  border-radius: 28px;
+  padding: 44px 42px 38px;
+  box-shadow:
+    0 50px 140px rgba(0,0,0,0.9),
+    0 0 0 1px rgba(255,255,255,0.03) inset,
+    0 1px 0 rgba(251,191,36,0.08) inset;
+  animation: lpCardIn 0.7s cubic-bezier(.22,1,.36,1) 0.1s both;
+  will-change: transform;
+}
+@keyframes lpCardIn {
+  from { opacity:0; transform:translateY(30px) scale(0.96); }
+  to   { opacity:1; transform:translateY(0) scale(1); }
+}
+
+/* línea superior animada */
+.lp-card-line {
+  position: absolute; top: 0; left: 15%; right: 15%; height: 1.5px;
+  background: linear-gradient(90deg, transparent, rgba(251,191,36,0.8), rgba(254,243,199,0.9), rgba(251,191,36,0.8), transparent);
+  border-radius: 0 0 4px 4px;
+  animation: lpLine 4s ease-in-out infinite;
+}
+@keyframes lpLine {
+  0%,100% { left:15%; right:15%; opacity:0.5; }
+  50%      { left:4%;  right:4%;  opacity:1; }
+}
+
+/* ── BRAND ── */
+.lp-brand { display: flex; align-items: center; gap: 14px; margin-bottom: 30px; }
+.lp-brand-icon {
+  width: 56px; height: 56px; border-radius: 18px; flex-shrink: 0;
+  background: linear-gradient(135deg, #f59e0b, #b45309);
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 8px 28px rgba(217,119,6,0.55), inset 0 1px 0 rgba(255,255,255,0.18);
+  animation: lpBob 5s ease-in-out infinite;
+}
+@keyframes lpBob {
+  0%,100% { transform:translateY(0) rotate(0deg); }
+  35%     { transform:translateY(-4px) rotate(-1.5deg); }
+  70%     { transform:translateY(2px) rotate(1deg); }
+}
+.lp-brand-name {
+  display:block; font-size:22px; font-weight:800;
+  background: linear-gradient(90deg, #fef3c7 0%, #fbbf24 50%, #f59e0b 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  letter-spacing: -0.4px;
+}
+.lp-brand-sub {
+  display:block; font-size:10px; font-weight:600;
+  color: rgba(251,191,36,0.4);
+  text-transform:uppercase; letter-spacing:0.14em; margin-top:3px;
+}
+
+/* ── TÍTULOS ── */
+.lp-title {
+  font-size: 27px; font-weight: 800;
+  color: #fef9ed;
+  margin: 0 0 6px; letter-spacing: -0.5px;
+  animation: lpFadeUp 0.6s cubic-bezier(.22,1,.36,1) 0.25s both;
+}
+.lp-subtitle {
+  font-size: 13px; color: rgba(251,191,36,0.35);
+  margin: 0 0 28px; line-height: 1.6;
+  animation: lpFadeUp 0.6s cubic-bezier(.22,1,.36,1) 0.32s both;
+}
+@keyframes lpFadeUp {
+  from { opacity:0; transform:translateY(10px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+
+/* ── FLASHES ── */
+.lp-flashes { display:flex; flex-direction:column; gap:8px; margin-bottom:18px; }
+.lp-flash {
+  display:flex; align-items:center; gap:9px;
+  padding:11px 14px; border-radius:12px;
+  font-size:13px; font-weight:600;
+  animation: lpFlash 0.35s cubic-bezier(.22,1,.36,1);
+}
+@keyframes lpFlash { from { opacity:0; transform:translateY(-6px) scale(0.97); } }
+.lp-flash--error   { background:rgba(244,63,94,0.10);  color:#fca5a5; border:1px solid rgba(244,63,94,0.25); }
+.lp-flash--success { background:rgba(16,185,129,0.09); color:#6ee7b7; border:1px solid rgba(16,185,129,0.22); }
+
+/* ── FORM ── */
+.lp-form { display:flex; flex-direction:column; gap:18px; margin-bottom:18px;
+  animation: lpFadeUp 0.6s cubic-bezier(.22,1,.36,1) 0.38s both;
+}
+.lp-field { display:flex; flex-direction:column; gap:8px; }
+.lp-label {
+  display:flex; align-items:center; gap:6px;
+  font-size:10.5px; font-weight:700;
+  color: rgba(251,191,36,0.5);
+  text-transform:uppercase; letter-spacing:0.12em;
+  transition: color 0.2s;
+}
+.lp-field:focus-within .lp-label {
+  color: rgba(251,191,36,0.85);
+}
+
+/* ── INPUT WRAPPER ── */
+.lp-input-wrap {
+  display: flex; align-items: center;
+  background: #160b03;
+  border: 1.5px solid rgba(251,191,36,0.18);
+  border-radius: 14px;
+  transition: border-color 0.25s, box-shadow 0.25s;
+  overflow: hidden;
+}
+.lp-input-wrap:focus-within {
+  border-color: rgba(251,191,36,0.55);
+  box-shadow: 0 0 0 4px rgba(251,191,36,0.09), 0 6px 20px rgba(0,0,0,0.4);
+}
+.lp-input {
+  flex: 1; min-width: 0;
+  padding: 14px 18px;
+  background: #160b03 !important;
+  border: none; outline: none;
+  color: #fef3c7 !important;
+  font-size: 15px; font-family: 'Sora', sans-serif;
+  box-sizing: border-box;
+  caret-color: #fbbf24;
+  -webkit-text-fill-color: #fef3c7 !important;
+}
+.lp-input::placeholder { color: rgba(251,191,36,0.30) !important; -webkit-text-fill-color: rgba(251,191,36,0.30) !important; }
+.lp-input:-webkit-autofill,
+.lp-input:-webkit-autofill:focus,
+.lp-input:-webkit-autofill:hover,
+.lp-input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 2000px #160b03 inset !important;
+  box-shadow: 0 0 0 2000px #160b03 inset !important;
+  -webkit-text-fill-color: #fef3c7 !important;
+  caret-color: #fbbf24 !important;
+  font-family: 'Sora', sans-serif !important;
+  font-size: 15px !important;
+}
+.lp-input-pwd { padding-right: 6px; }
+
+/* ── OJO — solo icono, sin caja ── */
+.lp-eye {
+  flex-shrink: 0;
+  width: 40px; height: 40px;
+  margin-right: 4px;
+  padding: 0;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  -webkit-appearance: none;
+  appearance: none;
+  cursor: pointer;
+  color: rgba(251,191,36,0.25);
+  display: flex; align-items: center; justify-content: center;
+  transition: color 0.2s, transform 0.2s;
+}
+.lp-eye:focus { outline: none !important; box-shadow: none !important; }
+.lp-eye:hover { color: rgba(251,191,36,0.8); transform: scale(1.15); }
+.lp-eye:active { transform: scale(0.92); }
+.lp-eye svg { display: block; }
+
+/* barra fuerza */
+.lp-bar-wrap {
+  height: 2px; border-radius: 2px;
+  background: rgba(255,255,255,0.04);
+  overflow: hidden;
+}
+.lp-bar { height: 100%; width: 0; border-radius: 2px; transition: width 0.45s cubic-bezier(.22,1,.36,1), background 0.45s; }
+
+/* ── BOTÓN SUBMIT ── */
+.lp-btn {
+  width: 100%; padding: 15.5px;
+  border-radius: 14px; border: none; cursor: pointer;
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 40%, #d97706 70%, #b45309 100%);
+  background-size: 250% 250%;
+  color: #1a0900; font-size: 15px; font-weight: 800;
+  font-family: 'Sora', sans-serif;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  box-shadow: 0 6px 30px rgba(217,119,6,0.55), 0 2px 8px rgba(0,0,0,0.4);
+  transition: transform 0.2s, box-shadow 0.2s, background-position 0.6s;
+  letter-spacing: 0.02em; position: relative; overflow: hidden;
+  animation: lpBtnGlow 4s ease infinite;
+}
+@keyframes lpBtnGlow {
+  0%,100% { background-position: 0% 50%; }
+  50%      { background-position: 100% 50%; }
+}
+.lp-btn::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.22) 50%, transparent 100%);
+  transform: translateX(-100%); transition: transform 0.55s ease;
+}
+.lp-btn:hover { transform: translateY(-2px); box-shadow: 0 14px 40px rgba(217,119,6,0.65), 0 4px 12px rgba(0,0,0,0.5); }
+.lp-btn:hover::after { transform: translateX(100%); }
+.lp-btn:active { transform: translateY(0); box-shadow: 0 4px 16px rgba(217,119,6,0.4); }
+.lp-btn-arr { display:flex; align-items:center; transition:transform 0.25s; }
+.lp-btn:hover .lp-btn-arr { transform: translateX(5px); }
+.lp-spin { animation: lpSpin 0.85s linear infinite; }
+@keyframes lpSpin { to { transform: rotate(360deg); } }
+
+/* ── STATUS BD ── */
+.lp-status {
+  display: flex; align-items: center; gap: 8px;
+  padding: 9px 14px; border-radius: 11px;
+  font-size: 12px; font-weight: 600; margin-bottom: 12px;
+  animation: lpFadeUp 0.6s cubic-bezier(.22,1,.36,1) 0.5s both;
+}
+.lp-status--ok    { background: rgba(16,185,129,0.07); color: #6ee7b7; border: 1px solid rgba(16,185,129,0.18); }
+.lp-status--error { background: rgba(244,63,94,0.07);  color: #fca5a5; border: 1px solid rgba(244,63,94,0.18); }
+.lp-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.lp-status--ok .lp-dot { background: #10b981; animation: lpDotPulse 2s infinite; }
+.lp-status--error .lp-dot { background: #f43f5e; }
+@keyframes lpDotPulse {
+  0%,100% { box-shadow: 0 0 0 0 rgba(16,185,129,0.5); }
+  50%      { box-shadow: 0 0 0 5px rgba(16,185,129,0); }
+}
+
+/* ── DEMO USUARIOS ── */
+.lp-demo {
+  border-radius: 14px; overflow: hidden;
+  border: 1px solid rgba(251,191,36,0.10);
+  background: rgba(255,255,255,0.015);
+  animation: lpFadeUp 0.6s cubic-bezier(.22,1,.36,1) 0.55s both;
+}
+.lp-demo-toggle {
+  width: 100%; display: flex; align-items: center; gap: 8px;
+  padding: 11px 16px; background: none; border: none; cursor: pointer;
+  font-size: 12px; font-weight: 700; color: rgba(251,191,36,0.45);
+  font-family: 'Sora', sans-serif; transition: color 0.2s, background 0.2s;
+}
+.lp-demo-toggle:hover { color: rgba(251,191,36,0.8); background: rgba(251,191,36,0.04); }
+.lp-demo-chev { margin-left: auto; transition: transform 0.35s cubic-bezier(.22,1,.36,1); }
+.lp-demo-chev.open { transform: rotate(180deg); }
+.lp-demo-panel {
+  max-height: 0; overflow: hidden;
+  transition: max-height 0.45s cubic-bezier(.22,1,.36,1);
+  border-top: 0px solid rgba(251,191,36,0.08);
+}
+.lp-demo-panel.open { max-height: 600px; overflow-y: auto; border-top-width: 1px; }
+.lp-demo-panel::-webkit-scrollbar { width: 4px; }
+.lp-demo-panel::-webkit-scrollbar-track { background: transparent; }
+.lp-demo-panel::-webkit-scrollbar-thumb { background: rgba(251,191,36,0.2); border-radius: 4px; }
+.lp-demo-panel::-webkit-scrollbar-thumb:hover { background: rgba(251,191,36,0.4); }
+.lp-demo-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 11px 16px; cursor: pointer;
+  border-bottom: 1px solid rgba(251,191,36,0.05);
+  transition: background 0.2s;
+}
+.lp-demo-row:last-child { border-bottom: none; }
+.lp-demo-row:hover { background: rgba(251,191,36,0.04); }
+.lp-demo-row:hover .lp-demo-hint { opacity: 1; transform: translateX(0); }
+.lp-demo-info { display: flex; flex-direction: column; gap: 3px; }
+.lp-demo-role {
+  font-size: 11px; font-weight: 800;
+  padding: 2px 10px; border-radius: 99px; width: fit-content;
+}
+.role-admin      { background: rgba(251,191,36,0.15); color: #fcd34d; border: 1px solid rgba(251,191,36,0.2); }
+.role-conductor  { background: rgba(34,197,94,0.12);  color: #86efac; border: 1px solid rgba(34,197,94,0.2); }
+.role-supervisor { background: rgba(139,92,246,0.13); color: #c4b5fd; border: 1px solid rgba(139,92,246,0.2); }
+.lp-demo-mail  { font-size: 11px; color: rgba(251,191,36,0.3); font-family: 'JetBrains Mono', monospace; }
+.lp-demo-hint  {
+  font-size: 10.5px; color: rgba(251,191,36,0.45);
+  opacity: 0; transform: translateX(-4px);
+  transition: opacity 0.2s, transform 0.2s;
+}
+
+@media (max-width: 520px) {
+  .lp-card   { padding: 30px 20px 26px; border-radius: 22px; }
+  .lp-header { padding: 0 18px; }
+}
+
+/* ── BOTÓN INICIO DENTRO DE CARD ── */
+.lp-back-pill {
+  display: inline-flex; align-items: center; gap: 9px;
+  padding: 0;
+  background: none;
+  border: none;
+  color: rgba(251,191,36,0.6);
+  font-size: 13px; font-weight: 800; font-family: 'Sora', sans-serif;
+  text-decoration: none; letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 26px;
+  transition: all 0.25s cubic-bezier(.22,1,.36,1);
+  width: fit-content;
+}
+.lp-back-pill:hover {
+  color: #fbbf24;
+  transform: translateX(-3px);
+}
+.lp-back-pill .pill-arrow {
+  width: 28px; height: 28px; border-radius: 8px;
+  background: rgba(251,191,36,0.09);
+  border: 1.5px solid rgba(251,191,36,0.22);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.22s, border-color 0.22s, transform 0.22s;
+}
+.lp-back-pill:hover .pill-arrow {
+  background: rgba(251,191,36,0.16);
+  border-color: rgba(251,191,36,0.45);
+  transform: translateX(-2px);
+}
+</style>
+
+<div class="lp" id="lpPage">
+
+  <!-- Header -->
+  <header class="lp-header">
+    <a href="{{ url_for('welcome') }}" class="lp-hdr-brand">
+      <div class="lp-hdr-logo">
+        <svg width="22" height="19" viewBox="0 0 72 60" fill="none">
+          <rect x="2" y="22" width="40" height="28" rx="5" fill="url(#lhcab)"/>
+          <rect x="6" y="10" width="28" height="14" rx="4" fill="url(#lhroof)"/>
+          <rect x="8" y="12" width="22" height="10" rx="3" fill="url(#lhglass)"/>
+          <rect x="42" y="18" width="28" height="32" rx="4" fill="url(#lhtrailer)"/>
+          <circle cx="16" cy="52" r="7" fill="#1a0e06"/><circle cx="16" cy="52" r="3" fill="url(#lhwheel)"/><circle cx="16" cy="52" r="1.2" fill="#fbbf24"/>
+          <circle cx="52" cy="52" r="7" fill="#1a0e06"/><circle cx="52" cy="52" r="3" fill="url(#lhwheel)"/><circle cx="52" cy="52" r="1.2" fill="#fbbf24"/>
+          <defs>
+            <linearGradient id="lhcab" x1="2" y1="22" x2="42" y2="50" gradientUnits="userSpaceOnUse"><stop stop-color="#f59e0b"/><stop offset="1" stop-color="#b45309"/></linearGradient>
+            <linearGradient id="lhroof" x1="6" y1="10" x2="34" y2="24" gradientUnits="userSpaceOnUse"><stop stop-color="#fbbf24"/><stop offset="1" stop-color="#d97706"/></linearGradient>
+            <linearGradient id="lhglass" x1="8" y1="12" x2="30" y2="22" gradientUnits="userSpaceOnUse"><stop stop-color="#bfdbfe" stop-opacity=".95"/><stop offset="1" stop-color="#60a5fa" stop-opacity=".7"/></linearGradient>
+            <linearGradient id="lhtrailer" x1="42" y1="18" x2="70" y2="50" gradientUnits="userSpaceOnUse"><stop stop-color="#d97706"/><stop offset="1" stop-color="#92400e"/></linearGradient>
+            <radialGradient id="lhwheel"><stop stop-color="#6b4400"/><stop offset="1" stop-color="#3d2600"/></radialGradient>
+          </defs>
+        </svg>
+      </div>
+      <span class="lp-hdr-name">LogiCarga</span>
+    </a>
+    <a href="{{ url_for('welcome') }}" class="lp-hdr-back">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      Volver al inicio
+    </a>
+  </header>
+
+  <!-- Fondo -->
+  <div class="lp-bg">
+    <div class="lp-orb lp-orb-1"></div>
+    <div class="lp-orb lp-orb-2"></div>
+    <div class="lp-orb lp-orb-3"></div>
+    <div class="lp-grid"></div>
+    <canvas class="lp-canvas" id="lpCanvas"></canvas>
+  </div>
+
+  <!-- Card -->
+  <div class="lp-card" id="lpCard">
+    <div class="lp-card-line"></div>
+
+    <!-- Botón volver al inicio -->
+    <a href="{{ url_for('welcome') }}" class="lp-back-pill">
+      <span class="pill-arrow">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M19 12H5M12 5l-7 7 7 7"/>
+        </svg>
+      </span>
+      Inicio
+    </a>
+
+    <div class="lp-brand">
+      <div class="lp-brand-icon">
+        <svg width="32" height="27" viewBox="0 0 72 60" fill="none">
+          <rect x="2" y="22" width="40" height="28" rx="5" fill="url(#lcab)"/>
+          <rect x="6" y="10" width="28" height="14" rx="4" fill="url(#lroof)"/>
+          <rect x="8" y="12" width="22" height="10" rx="3" fill="url(#lglass)"/>
+          <rect x="42" y="18" width="28" height="32" rx="4" fill="url(#ltrailer)"/>
+          <rect x="42" y="28" width="28" height="2.5" fill="url(#lstripe)"/>
+          <circle cx="16" cy="52" r="7" fill="#1a0e06"/><circle cx="16" cy="52" r="3" fill="url(#lwheel)"/><circle cx="16" cy="52" r="1.2" fill="#fbbf24"/>
+          <circle cx="52" cy="52" r="7" fill="#1a0e06"/><circle cx="52" cy="52" r="3" fill="url(#lwheel)"/><circle cx="52" cy="52" r="1.2" fill="#fbbf24"/>
+          <rect x="2" y="28" width="4" height="6" rx="1.5" fill="url(#lhead)"/>
+          <defs>
+            <linearGradient id="lcab" x1="2" y1="22" x2="42" y2="50" gradientUnits="userSpaceOnUse"><stop stop-color="#f59e0b"/><stop offset="1" stop-color="#b45309"/></linearGradient>
+            <linearGradient id="lroof" x1="6" y1="10" x2="34" y2="24" gradientUnits="userSpaceOnUse"><stop stop-color="#fbbf24"/><stop offset="1" stop-color="#d97706"/></linearGradient>
+            <linearGradient id="lglass" x1="8" y1="12" x2="30" y2="22" gradientUnits="userSpaceOnUse"><stop stop-color="#bfdbfe" stop-opacity=".95"/><stop offset="1" stop-color="#60a5fa" stop-opacity=".7"/></linearGradient>
+            <linearGradient id="ltrailer" x1="42" y1="18" x2="70" y2="50" gradientUnits="userSpaceOnUse"><stop stop-color="#d97706"/><stop offset="1" stop-color="#92400e"/></linearGradient>
+            <linearGradient id="lstripe" x1="42" y1="28" x2="70" y2="31" gradientUnits="userSpaceOnUse"><stop stop-color="#fcd34d"/><stop offset="1" stop-color="#f59e0b"/></linearGradient>
+            <radialGradient id="lwheel"><stop stop-color="#6b4400"/><stop offset="1" stop-color="#3d2600"/></radialGradient>
+            <linearGradient id="lhead" x1="2" y1="28" x2="6" y2="34" gradientUnits="userSpaceOnUse"><stop stop-color="#fef9c3"/><stop offset="1" stop-color="#fbbf24"/></linearGradient>
+          </defs>
+        </svg>
+      </div>
+      <div>
+        <span class="lp-brand-name">LogiCarga</span>
+        <span class="lp-brand-sub">Sistema de gestión de flota</span>
+      </div>
+    </div>
+
+    <h2 class="lp-title">Bienvenido de vuelta</h2>
+    <p class="lp-subtitle">Ingresa tus credenciales para acceder a la plataforma</p>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="lp-flashes">
+          {% for category, message in messages %}
+            {% if category == 'desactivada' %}
+            <!-- CUENTA DESACTIVADA — pantalla especial -->
+            <style>
+            .lp-blocked{border-radius:18px;overflow:hidden;border:1px solid rgba(239,68,68,0.35);background:linear-gradient(135deg,rgba(30,5,5,0.98),rgba(20,3,3,0.99));padding:22px 20px;text-align:center;}
+            .lp-blocked-icon{width:56px;height:56px;border-radius:50%;background:rgba(239,68,68,0.12);border:2px solid rgba(239,68,68,0.3);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;animation:lpBlockPulse 2.5s ease-in-out infinite;}
+            @keyframes lpBlockPulse{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,.3)}50%{box-shadow:0 0 0 12px rgba(239,68,68,0)}}
+            .lp-blocked-title{font-size:16px;font-weight:800;color:#fca5a5;margin-bottom:8px;}
+            .lp-blocked-msg{font-size:12.5px;color:rgba(252,165,165,0.65);line-height:1.6;}
+            .lp-blocked-sep{height:1px;background:rgba(239,68,68,0.15);margin:14px 0;}
+            .lp-blocked-hint{font-size:11px;color:rgba(252,165,165,0.4);display:flex;align-items:center;justify-content:center;gap:6px;}
+            </style>
+            <div class="lp-blocked">
+              <div class="lp-blocked-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+              </div>
+              <div class="lp-blocked-title">Cuenta desactivada</div>
+              <div class="lp-blocked-msg">Tu cuenta ha sido desactivada por un administrador.<br>No tienes acceso al sistema en este momento.</div>
+              <div class="lp-blocked-sep"></div>
+              <div class="lp-blocked-hint">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                Contacta al administrador para más información
+              </div>
+            </div>
+            {% else %}
+            <div class="lp-flash lp-flash--{{ category }}">
+              {% if category == 'error' %}
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              {% else %}
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+              {% endif %}
+              {{ message }}
+            </div>
+            {% endif %}
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <form method="post" class="lp-form" id="lpForm" novalidate>
+
+      <div class="lp-field">
+        <label class="lp-label" for="correo">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+          Correo electrónico
+        </label>
+        <div class="lp-input-wrap">
+          <input type="email" id="correo" name="correo"
+                 placeholder="usuario@mail.com"
+                 autocomplete="email" required class="lp-input">
+        </div>
+      </div>
+
+      <div class="lp-field">
+        <label class="lp-label" for="password">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          Contraseña
+        </label>
+        <div class="lp-input-wrap">
+          <input type="password" id="password" name="password"
+                 placeholder="••••••••"
+                 autocomplete="current-password" required
+                 class="lp-input lp-input-pwd">
+          <button type="button" class="lp-eye" id="lpEyeBtn"
+                  onclick="lpTogglePwd()" tabindex="-1"
+                  aria-label="Mostrar/ocultar contraseña">
+            <svg id="lpEyeShow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+            </svg>
+            <svg id="lpEyeHide" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none">
+              <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+              <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+              <line x1="1" y1="1" x2="23" y2="23"/>
+            </svg>
+          </button>
+        </div>
+        <div class="lp-bar-wrap"><div class="lp-bar" id="lpBar"></div></div>
+      </div>
+
+      <button type="submit" class="lp-btn" id="lpBtn">
+        <span id="lpBtnTxt">Ingresar al sistema</span>
+        <span class="lp-btn-arr" id="lpBtnArr">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </span>
+        <span id="lpBtnLoad" style="display:none">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="lp-spin"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+        </span>
+      </button>
+    </form>
+
+    <div class="lp-status {% if db_ok %}lp-status--ok{% else %}lp-status--error{% endif %}">
+      <span class="lp-dot"></span>
+      {% if db_ok %}Base de datos conectada{% else %}Sin conexión a la base de datos{% endif %}
+    </div>
+
+    <div class="lp-demo">
+      <button type="button" class="lp-demo-toggle" onclick="lpToggleDemo()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        Ver usuarios de prueba
+        <svg class="lp-demo-chev" id="lpChev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+      <div class="lp-demo-panel" id="lpDemoPanel">
+        <div class="lp-demo-row" onclick="lpFill('adminlogi@yopmail.com','logi2026')">
+          <div class="lp-demo-info">
+            <span class="lp-demo-role role-admin">Administrador</span>
+            <span class="lp-demo-mail">adminlogi@yopmail.com</span>
+          </div>
+          <span class="lp-demo-hint">click para usar →</span>
+        </div>
+        <div class="lp-demo-row" onclick="lpFill('conductor1.logi@yopmail.com','logi2026')">
+          <div class="lp-demo-info">
+            <span class="lp-demo-role role-conductor">Conductor 1 — Andrés Moreno</span>
+            <span class="lp-demo-mail">conductor1.logi@yopmail.com</span>
+          </div>
+          <span class="lp-demo-hint">click para usar →</span>
+        </div>
+        <div class="lp-demo-row" onclick="lpFill('conductor2.logi@yopmail.com','logi2026')">
+          <div class="lp-demo-info">
+            <span class="lp-demo-role role-conductor">Conductor 2 — Carlos Quintero</span>
+            <span class="lp-demo-mail">conductor2.logi@yopmail.com</span>
+          </div>
+          <span class="lp-demo-hint">click para usar →</span>
+        </div>
+        <div class="lp-demo-row" onclick="lpFill('conductor3.logi@yopmail.com','logi2026')">
+          <div class="lp-demo-info">
+            <span class="lp-demo-role role-conductor">Conductor 3 — Jhon Vargas</span>
+            <span class="lp-demo-mail">conductor3.logi@yopmail.com</span>
+          </div>
+          <span class="lp-demo-hint">click para usar →</span>
+        </div>
+        <div class="lp-demo-row" onclick="lpFill('supervisor.logi@yopmail.com','logi2026')">
+          <div class="lp-demo-info">
+            <span class="lp-demo-role role-supervisor">Supervisor General</span>
+            <span class="lp-demo-mail">supervisor.logi@yopmail.com</span>
+          </div>
+          <span class="lp-demo-hint">click para usar →</span>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /lp-card -->
+</div><!-- /lp -->
+
+<script>
+/* ── Fix autofill blanco de Chrome/Safari ── */
+(function() {
+  function fixAutofill() {
+    var inputs = document.querySelectorAll('.lp-input');
+    inputs.forEach(function(inp) {
+      try {
+        if (inp.matches(':-webkit-autofill')) {
+          inp.style.setProperty('background-color', '#160b03', 'important');
+          inp.style.setProperty('color', '#fef3c7', 'important');
+        }
+      } catch(e) {}
+    });
+  }
+  /* Pollear durante 3s al cargar la página (Chrome demora en aplicar autofill) */
+  var attempts = 0;
+  var timer = setInterval(function() {
+    fixAutofill();
+    if (++attempts > 30) clearInterval(timer);
+  }, 100);
+  document.addEventListener('animationstart', function(e) {
+    if (e.animationName === 'onAutoFillStart') {
+      var el = e.target;
+      el.style.setProperty('background-color', '#160b03', 'important');
+      el.style.setProperty('color', '#fef3c7', 'important');
+    }
+  }, true);
+})();
+
+/* ── Toggle ojo ── */
+function lpTogglePwd() {
+  var inp  = document.getElementById('password');
+  var show = document.getElementById('lpEyeShow');
+  var hide = document.getElementById('lpEyeHide');
+  var eye  = document.getElementById('lpEyeBtn');
+  var isHidden = inp.type === 'password';
+  inp.type = isHidden ? 'text' : 'password';
+  show.style.display = isHidden ? 'none'  : 'block';
+  hide.style.display = isHidden ? 'block' : 'none';
+  eye.style.color = isHidden ? 'rgba(251,191,36,0.7)' : 'rgba(251,191,36,0.25)';
+  /* micro-bounce */
+  eye.animate([
+    { transform: 'scale(1)' },
+    { transform: 'scale(1.35)' },
+    { transform: 'scale(1)' }
+  ], { duration: 260, easing: 'cubic-bezier(.22,1,.36,1)' });
+}
+
+/* ── Fuerza contraseña ── */
+document.getElementById('password').addEventListener('input', function () {
+  var bar = document.getElementById('lpBar');
+  var v = this.value;
+  if (!v) { bar.style.width = '0'; return; }
+  var s = 0;
+  if (v.length >= 4)  s++;
+  if (v.length >= 8)  s++;
+  if (/[A-Z]|[0-9]|[^a-zA-Z0-9]/.test(v)) s++;
+  bar.style.width      = ['18%','45%','75%','100%'][Math.min(s,3)];
+  bar.style.background = ['#ef4444','#f59e0b','#fbbf24','#34d399'][Math.min(s,3)];
+});
+
+/* ── Demo toggle ── */
+function lpToggleDemo() {
+  document.getElementById('lpDemoPanel').classList.toggle('open');
+  document.getElementById('lpChev').classList.toggle('open');
+}
+
+/* ── Rellenar credenciales sin focus (evita autofill blanco) ── */
+function lpFill(email, pwd) {
+  function typeIn(el, val, cb) {
+    el.value = ''; var i = 0;
+    var t = setInterval(function() {
+      el.value += val[i++];
+      el.dispatchEvent(new Event('input'));
+      if (i >= val.length) { clearInterval(t); if (cb) setTimeout(cb, 60); }
+    }, 28);
+  }
+  /* highlight row effect */
+  event.currentTarget.style.background = 'rgba(251,191,36,0.08)';
+  setTimeout(function(){ event.currentTarget.style.background = ''; }, 600);
+
+  typeIn(document.getElementById('correo'), email, function() {
+    typeIn(document.getElementById('password'), pwd, function() {
+      document.getElementById('lpBar').style.width = '45%';
+      document.getElementById('lpBar').style.background = '#f59e0b';
+    });
+  });
+}
+
+/* ── Loader submit ── */
+document.getElementById('lpForm').addEventListener('submit', function () {
+  document.getElementById('lpBtnTxt').textContent = 'Verificando...';
+  document.getElementById('lpBtnArr').style.display = 'none';
+  document.getElementById('lpBtnLoad').style.display = '';
+  var btn = document.getElementById('lpBtn');
+  btn.disabled = true; btn.style.opacity = '0.82';
+});
+
+/* ── Partículas canvas ── */
+(function () {
+  var c = document.getElementById('lpCanvas');
+  var ctx = c.getContext('2d');
+  var W, H, ps = [];
+  function resize() { W = c.width = window.innerWidth; H = c.height = window.innerHeight; }
+  resize(); window.addEventListener('resize', resize);
+
+  function P() {
+    this.x = Math.random() * W;
+    this.y = Math.random() * H;
+    this.r = 0.3 + Math.random() * 1.4;
+    this.vx = (Math.random() - 0.5) * 0.18;
+    this.vy = -0.05 - Math.random() * 0.35;
+    this.a = 0.08 + Math.random() * 0.55;
+    this.da = (Math.random() - 0.5) * 0.0025;
+    this.gold = Math.random() > 0.3;
+  }
+  P.prototype.tick = function () {
+    this.x += this.vx; this.y += this.vy;
+    this.a = Math.max(0, Math.min(0.8, this.a + this.da));
+    if (this.y < -8 || this.a <= 0) {
+      this.y = H + 6; this.x = Math.random() * W;
+      this.a = 0.08 + Math.random() * 0.55;
+    }
+  };
+  for (var i = 0; i < 80; i++) ps.push(new P());
+
+  (function loop() {
+    ctx.clearRect(0, 0, W, H);
+    ps.forEach(function(p) {
+      p.tick();
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = p.gold
+        ? 'rgba(251,191,36,' + p.a + ')'
+        : 'rgba(254,243,199,' + (p.a * 0.5) + ')';
+      ctx.fill();
+    });
+    requestAnimationFrame(loop);
+  })();
+})();
+
+/* ── Parallax card con mouse ── */
+(function() {
+  var card = document.getElementById('lpCard');
+  var tX = 0, tY = 0, cX = 0, cY = 0;
+  document.addEventListener('mousemove', function (e) {
+    tX = (e.clientX / window.innerWidth  - 0.5) * 6;
+    tY = (e.clientY / window.innerHeight - 0.5) * 4;
+  });
+  (function lerp() {
+    cX += (tX - cX) * 0.06;
+    cY += (tY - cY) * 0.06;
+    card.style.transform = 'perspective(1000px) rotateY(' + cX + 'deg) rotateX(' + (-cY) + 'deg)';
+    requestAnimationFrame(lerp);
+  })();
+})();
+</script>
+{% endblock %}

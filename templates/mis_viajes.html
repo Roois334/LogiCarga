@@ -1,0 +1,764 @@
+{% extends 'base.html' %}
+{% block title %}Mis Viajes | LogiCarga{% endblock %}
+{% block content %}
+
+<style>
+/* ── MIS VIAJES ─────────────────────────────────── */
+/* fix: evitar que el contenido se corte abajo */
+:root { --page-extra-bottom: 80px; }
+.mv-list { padding-bottom: var(--page-extra-bottom); }
+
+.mv-hero {
+  background: linear-gradient(135deg, #1c1009 0%, #2e1b0b 60%, #3a2010 100%);
+  border-radius: 20px; padding: 28px 32px; margin-bottom: 24px;
+  display: flex; align-items: center; gap: 20px;
+  position: relative; overflow: hidden;
+}
+.mv-hero::before {
+  content:''; position:absolute; top:-80px; right:-80px;
+  width:260px; height:260px; border-radius:50%;
+  background: radial-gradient(circle, rgba(251,191,36,0.12) 0%, transparent 70%);
+  pointer-events:none;
+}
+.mv-hero-icon { width:56px; height:56px; border-radius:16px; flex-shrink:0; background:linear-gradient(135deg,#f59e0b,#b45309); display:flex; align-items:center; justify-content:center; box-shadow:0 6px 24px rgba(217,119,6,0.50); }
+.mv-hero-text h2 { margin:0 0 5px; font-size:22px; font-weight:800; color:#fcd34d; }
+.mv-hero-text p  { margin:0; color:#a08060; font-size:13.5px; }
+
+.mv-stats { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:24px; }
+.mv-stat { background:var(--white); border:1px solid var(--border); border-radius:16px; padding:18px 20px; text-align:center; box-shadow:0 2px 12px var(--shadow); transition:transform 0.2s, box-shadow 0.2s; }
+.mv-stat:hover { transform:translateY(-2px); box-shadow:0 6px 20px var(--shadow); }
+.mv-stat .sv { font-family:'JetBrains Mono',monospace; font-size:28px; font-weight:800; color:var(--amber-600); line-height:1; }
+.mv-stat .sl { font-size:11px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.07em; margin-top:6px; }
+
+/* BANNER EN RUTA */
+.mv-active-banner {
+  background:linear-gradient(135deg,#ecfdf5,#d1fae5);
+  border:2px solid rgba(16,185,129,0.35); border-radius:20px;
+  padding:22px 28px; margin-bottom:16px;
+  display:flex; align-items:center; gap:18px;
+  box-shadow:0 6px 24px rgba(16,185,129,0.15);
+  position:relative; overflow:hidden;
+}
+.mv-active-pulse {
+  width:48px; height:48px; border-radius:14px; flex-shrink:0;
+  background:linear-gradient(135deg,#10b981,#059669); display:flex; align-items:center; justify-content:center;
+  animation:mvPulse 2.2s ease-in-out infinite;
+}
+@keyframes mvPulse {
+  0%   { box-shadow:0 0 0 0 rgba(16,185,129,0.5); }
+  70%  { box-shadow:0 0 0 14px rgba(16,185,129,0); }
+  100% { box-shadow:0 0 0 0 rgba(16,185,129,0); }
+}
+.mv-active-info { flex:1; }
+.mv-active-info .ai-label { font-size:10.5px; font-weight:800; color:#059669; text-transform:uppercase; letter-spacing:0.1em; margin-bottom:5px; display:flex; align-items:center; gap:6px; }
+.mv-active-info .ai-ruta  { font-size:18px; font-weight:800; color:#064e3b; margin:0 0 4px; }
+.mv-active-info .ai-sub   { font-size:12.5px; color:#065f46; }
+
+/* BANNER PROGRAMADO */
+.mv-programado-banner {
+  background:linear-gradient(135deg,#eff6ff,#dbeafe);
+  border:2px solid rgba(59,130,246,0.30); border-radius:20px;
+  padding:20px 26px; margin-bottom:14px;
+  display:flex; align-items:center; gap:16px;
+  box-shadow:0 4px 16px rgba(59,130,246,0.10);
+}
+.mv-prog-icon { width:44px; height:44px; border-radius:13px; flex-shrink:0; background:linear-gradient(135deg,#3b82f6,#1d4ed8); display:flex; align-items:center; justify-content:center; }
+.mv-prog-info { flex:1; }
+.mv-prog-info .pi-label { font-size:10.5px; font-weight:800; color:#1d4ed8; text-transform:uppercase; letter-spacing:0.1em; margin-bottom:4px; }
+.mv-prog-info .pi-ruta  { font-size:15px; font-weight:800; color:#1e3a8a; margin:0 0 3px; }
+.mv-prog-info .pi-sub   { font-size:12px; color:#1e40af; }
+
+/* BOTONES */
+.btn-iniciar {
+  padding:11px 20px; border-radius:11px; border:none; cursor:pointer;
+  background:linear-gradient(135deg,#3b82f6,#1d4ed8); color:white;
+  font-size:13px; font-weight:800; letter-spacing:0.02em;
+  box-shadow:0 4px 16px rgba(29,78,216,0.35); transition:all 0.22s;
+  display:flex; align-items:center; gap:7px; white-space:nowrap; flex-shrink:0;
+}
+.btn-iniciar:hover { transform:translateY(-2px); box-shadow:0 8px 22px rgba(29,78,216,0.45); }
+.btn-finalizar {
+  padding:11px 20px; border-radius:11px; border:none; cursor:pointer;
+  background:linear-gradient(135deg,#10b981,#059669); color:white;
+  font-size:13px; font-weight:800; letter-spacing:0.02em;
+  box-shadow:0 4px 16px rgba(5,150,105,0.38); transition:all 0.22s;
+  display:flex; align-items:center; gap:7px; white-space:nowrap; flex-shrink:0;
+}
+.btn-finalizar:hover { transform:translateY(-2px); box-shadow:0 8px 22px rgba(5,150,105,0.50); }
+.btn-sm { padding:7px 14px !important; font-size:12px !important; }
+
+/* HISTORIAL */
+.mv-section-title {
+  font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:0.1em;
+  color:var(--amber-600); margin:28px 0 14px; display:flex; align-items:center; gap:10px;
+}
+.mv-section-title::after { content:''; flex:1; height:1px; background:var(--amber-100); }
+
+.mv-list { display:flex; flex-direction:column; gap:12px; }
+.mv-card { background:var(--white); border:1px solid var(--border); border-radius:18px; overflow:hidden; box-shadow:0 2px 12px var(--shadow); transition:box-shadow 0.2s, transform 0.2s; }
+.mv-card:hover { box-shadow:0 6px 28px rgba(120,53,15,0.12); transform:translateY(-1px); }
+.mv-card-header { display:flex; align-items:center; gap:14px; padding:16px 20px; cursor:pointer; transition:background 0.15s; }
+.mv-card-header:hover { background:var(--cream); }
+.mv-num { width:38px; height:38px; border-radius:11px; flex-shrink:0; background:linear-gradient(135deg,#fef3c7,#fde68a); border:1px solid rgba(245,158,11,0.3); display:flex; align-items:center; justify-content:center; font-family:'JetBrains Mono',monospace; font-size:12px; font-weight:800; color:#92400e; }
+.mv-ruta { flex:1; min-width:0; }
+.mv-ruta h4 { margin:0 0 3px; font-size:14px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.mv-ruta span { font-size:12px; color:var(--muted); }
+.mv-card-actions { display:flex; align-items:center; gap:8px; flex-shrink:0; }
+.mv-estado { font-size:11px; font-weight:700; padding:4px 12px; border-radius:99px; border:1px solid; white-space:nowrap; }
+.est-programado { background:rgba(59,130,246,0.08); color:#1e40af; border-color:rgba(59,130,246,0.25); }
+.est-en-ruta    { background:rgba(16,185,129,0.09); color:#065f46; border-color:rgba(16,185,129,0.28); }
+.est-finalizado { background:rgba(107,114,128,0.08); color:#374151; border-color:rgba(107,114,128,0.2); }
+.est-cancelado  { background:rgba(239,68,68,0.07);  color:#991b1b; border-color:rgba(239,68,68,0.2); }
+.mv-chevron { color:var(--muted); font-size:20px; transition:transform 0.22s; flex-shrink:0; line-height:1; }
+.mv-chevron.open { transform:rotate(90deg); }
+
+.mv-body { max-height:0; overflow:hidden; transition:max-height 0.42s cubic-bezier(.22,1,.36,1); }
+.mv-body.open { max-height:2000px; border-top:1px solid var(--border); }
+.mv-body-inner { padding:22px 22px 26px; }
+
+/* KM HERO BANNER */
+.mv-km-hero {
+  display:none; align-items:center; justify-content:space-around; flex-wrap:wrap; gap:10px;
+  background:linear-gradient(135deg,#064e3b,#065f46); border-radius:16px;
+  padding:18px 24px; margin-bottom:18px;
+  box-shadow:0 6px 24px rgba(5,150,105,0.25);
+}
+.mv-km-hero.visible { display:flex; }
+.mv-km-stat { text-align:center; }
+.mv-km-stat .ks-val { font-family:'JetBrains Mono',monospace; font-size:26px; font-weight:800; color:#6ee7b7; line-height:1; }
+.mv-km-stat .ks-val.big { font-size:32px; color:#a7f3d0; }
+.mv-km-stat .ks-label { font-size:10px; font-weight:700; color:rgba(167,243,208,0.65); text-transform:uppercase; letter-spacing:0.1em; margin-top:5px; }
+.mv-km-divider { width:1px; height:44px; background:rgba(167,243,208,0.18); }
+
+.mv-detail-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:11px; margin-bottom:14px; }
+.mv-detail-item { background:var(--cream); border:1px solid var(--amber-100); border-radius:12px; padding:13px 15px; transition:transform 0.18s; }
+.mv-detail-item:hover { transform:translateY(-1px); }
+.mv-detail-item .di-label { font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.07em; margin-bottom:6px; display:flex; align-items:center; gap:5px; }
+.mv-detail-item .di-val   { font-size:13.5px; font-weight:700; color:var(--text-dark); }
+.mv-detail-item .di-val.mono { font-family:'JetBrains Mono',monospace; }
+.di-km-highlight { background:linear-gradient(135deg,#ecfdf5,#d1fae5); border-color:rgba(16,185,129,0.25); }
+.di-km-highlight .di-label { color:#059669; }
+.di-km-highlight .di-val { color:#065f46; }
+.di-blue { background:linear-gradient(135deg,#eff6ff,#dbeafe); border-color:rgba(59,130,246,0.22); }
+.di-blue .di-label { color:#1d4ed8; }
+.di-blue .di-val { color:#1e3a8a; }
+.mv-obs { padding:13px 17px; background:rgba(245,158,11,0.06); border-left:3px solid var(--amber-400); border-radius:0 12px 12px 0; font-size:12.5px; color:var(--text-mid); line-height:1.6; margin-top:4px; }
+
+.mv-empty { text-align:center; padding:64px 24px; background:var(--white); border:1px solid var(--border); border-radius:18px; }
+.mv-empty p { color:var(--muted); font-size:14px; margin:14px 0 0; }
+
+/* ── MODALES ── */
+.modal-overlay {
+  position:fixed; inset:0; z-index:9000; display:none;
+  background:rgba(0,0,0,0.60); backdrop-filter:blur(5px);
+  align-items:center; justify-content:center; padding:20px;
+}
+.modal-overlay.open { display:flex; }
+.modal-box {
+  background:#fff; border-radius:24px; width:100%; max-width:540px;
+  box-shadow:0 28px 90px rgba(0,0,0,0.30); overflow:visible;
+  animation:modalIn 0.3s cubic-bezier(.22,1,.36,1);
+  max-height:92vh; display:flex; flex-direction:column;
+}
+.modal-box > form { display:flex; flex-direction:column; overflow:hidden; flex:1; border-radius:0 0 24px 24px; }
+.modal-scroll { overflow-y:auto !important; flex:1 !important; min-height:0 !important; }
+@keyframes modalIn { from{opacity:0;transform:translateY(24px) scale(0.96)} to{opacity:1;transform:none} }
+
+.modal-head-green { background:linear-gradient(135deg,#064e3b,#065f46); padding:22px 28px; display:flex; align-items:center; gap:14px; flex-shrink:0; }
+.mh-icon-green { width:44px; height:44px; border-radius:13px; flex-shrink:0; background:linear-gradient(135deg,#10b981,#059669); display:flex; align-items:center; justify-content:center; box-shadow:0 4px 16px rgba(5,150,105,0.5); }
+.modal-head-green h3 { margin:0 0 3px; font-size:17px; font-weight:800; color:#6ee7b7; }
+.modal-head-green p  { margin:0; font-size:12px; color:#a7f3d0; opacity:0.8; }
+
+.modal-head-blue { background:linear-gradient(135deg,#1e1b4b,#1e3a8a); padding:22px 28px; display:flex; align-items:center; gap:14px; flex-shrink:0; }
+.mh-icon-blue { width:44px; height:44px; border-radius:13px; flex-shrink:0; background:linear-gradient(135deg,#3b82f6,#1d4ed8); display:flex; align-items:center; justify-content:center; box-shadow:0 4px 16px rgba(29,78,216,0.5); }
+.modal-head-blue h3 { margin:0 0 3px; font-size:17px; font-weight:800; color:#bfdbfe; }
+.modal-head-blue p  { margin:0; font-size:12px; color:#93c5fd; opacity:0.8; }
+
+
+.modal-body { padding:24px 28px; }
+
+.mf-section-title { font-size:10.5px; font-weight:800; text-transform:uppercase; letter-spacing:0.1em; color:var(--amber-600); margin:0 0 13px; display:flex; align-items:center; gap:8px; }
+.mf-section-title::after { content:''; flex:1; height:1px; background:var(--amber-100); }
+.mf-section-title.blue { color:#1d4ed8; }
+.mf-section-title.blue::after { background:#dbeafe; }
+.mf-section-title.green { color:#059669; }
+.mf-section-title.green::after { background:#d1fae5; }
+
+.mf-grid { display:grid; grid-template-columns:1fr 1fr; gap:13px; margin-bottom:20px; }
+.mf-label { display:flex; flex-direction:column; gap:5px; font-size:13px; font-weight:600; color:var(--text-dark); }
+.mf-label.full { grid-column:1/-1; }
+.mf-label input, .mf-label select, .mf-label textarea {
+  padding:10px 13px; border-radius:10px; border:1.5px solid var(--border);
+  font-size:13px; background:white; font-family:inherit; color:var(--text-dark);
+  transition:border-color 0.2s, box-shadow 0.2s;
+}
+.mf-label input:focus, .mf-label select:focus, .mf-label textarea:focus { outline:none; border-color:var(--amber-400); box-shadow:0 0 0 3px rgba(245,158,11,0.12); }
+.mf-label textarea { resize:vertical; min-height:72px; }
+.mf-hint { font-size:11px; color:var(--muted); font-weight:400; margin-top:2px; }
+.mf-readonly { background:var(--cream) !important; color:var(--muted) !important; }
+
+.mf-km-result { display:none; align-items:center; gap:9px; padding:12px 16px; background:linear-gradient(135deg,#ecfdf5,#d1fae5); border:1px solid rgba(16,185,129,0.25); border-radius:11px; font-size:13px; font-weight:700; color:#065f46; grid-column:1/-1; }
+.mf-km-result.visible { display:flex; }
+.mf-km-result.error { background:linear-gradient(135deg,#fef2f2,#fee2e2); border-color:rgba(239,68,68,0.25); color:#991b1b; }
+.mf-km-val { font-family:'JetBrains Mono',monospace; font-size:15px; font-weight:800; }
+
+.mf-info-card { display:flex; align-items:flex-start; gap:11px; padding:13px 16px; background:linear-gradient(135deg,#eff6ff,#dbeafe); border:1px solid rgba(59,130,246,0.2); border-radius:12px; margin-bottom:20px; font-size:13px; color:#1e40af; font-weight:500; line-height:1.5; }
+
+.modal-footer { padding:14px 28px 24px; display:flex; gap:10px; flex-shrink:0; border-top:1px solid #f0f0f0; background:#fff; border-radius:0 0 24px 24px; }
+.mf-cancel-btn { flex:1; padding:13px; border-radius:12px; border:1.5px solid var(--border); background:white; font-size:13px; font-weight:700; color:var(--text-mid); cursor:pointer; transition:all 0.2s; }
+.mf-cancel-btn:hover { border-color:var(--amber-300); color:var(--amber-700); }
+.mf-confirm-green { flex:2; padding:13px; border-radius:12px; border:none; cursor:pointer; background:linear-gradient(135deg,#10b981,#059669); color:white; font-size:13px; font-weight:800; box-shadow:0 4px 16px rgba(5,150,105,0.35); transition:all 0.2s; display:flex; align-items:center; justify-content:center; gap:7px; }
+.mf-confirm-green:hover { transform:translateY(-1px); box-shadow:0 8px 22px rgba(5,150,105,0.45); }
+.mf-confirm-blue  { flex:2; padding:13px; border-radius:12px; border:none; cursor:pointer; background:linear-gradient(135deg,#3b82f6,#1d4ed8); color:white; font-size:13px; font-weight:800; box-shadow:0 4px 16px rgba(29,78,216,0.35); transition:all 0.2s; display:flex; align-items:center; justify-content:center; gap:7px; }
+.mf-confirm-blue:hover  { transform:translateY(-1px); box-shadow:0 8px 22px rgba(29,78,216,0.45); }
+.mf-confirm-green:disabled, .mf-confirm-blue:disabled { opacity:0.6; cursor:not-allowed; transform:none; }
+
+@media(max-width:640px){
+  .mv-detail-grid{ grid-template-columns:1fr 1fr; }
+  .mv-stats{ grid-template-columns:1fr 1fr; }
+  .mf-grid{ grid-template-columns:1fr; }
+  .mv-active-banner{ flex-wrap:wrap; }
+}
+</style>
+
+<!-- HERO -->
+<div class="mv-hero">
+  <div class="mv-hero-icon">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+      <rect x="1" y="9" width="18" height="9" rx="2"/><path d="M19 13h3l1 4H19"/>
+      <circle cx="6" cy="20" r="2"/><circle cx="15" cy="20" r="2"/><path d="M1 9l3-6h12l2 6"/>
+    </svg>
+  </div>
+  <div class="mv-hero-text">
+    <h2>Mis Viajes</h2>
+    <p>Gestiona y controla tus rutas asignadas en tiempo real</p>
+  </div>
+</div>
+
+{% set total       = items | length %}
+{% set en_ruta     = items | selectattr('estado','equalto','En ruta')    | list %}
+{% set finalizados = items | selectattr('estado','equalto','Finalizado') | list | length %}
+{% set programados = items | selectattr('estado','equalto','Programado') | list %}
+
+<!-- STATS -->
+<div class="mv-stats">
+  <div class="mv-stat"><div class="sv">{{ total }}</div><div class="sl">Total</div></div>
+  <div class="mv-stat"><div class="sv" style="color:#1e40af;">{{ programados|length }}</div><div class="sl">Programados</div></div>
+  <div class="mv-stat"><div class="sv" style="color:#065f46;">{{ en_ruta|length }}</div><div class="sl">En ruta</div></div>
+  <div class="mv-stat"><div class="sv" style="color:#374151;">{{ finalizados }}</div><div class="sl">Finalizados</div></div>
+</div>
+
+<!-- VIAJES EN RUTA -->
+{% for v in en_ruta %}
+<div class="mv-active-banner">
+  <div class="mv-active-pulse">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2">
+      <rect x="1" y="9" width="18" height="9" rx="2"/><path d="M19 13h3l1 4H19"/>
+      <circle cx="6" cy="20" r="2"/><circle cx="15" cy="20" r="2"/><path d="M1 9l3-6h12l2 6"/>
+    </svg>
+  </div>
+  <div class="mv-active-info">
+    <div class="ai-label">
+      <span style="width:7px;height:7px;border-radius:50%;background:#10b981;display:inline-block;"></span>
+      Viaje en curso — #{{ v.id }}
+    </div>
+    <div class="ai-ruta">{{ v.ciudad_origen }} → {{ v.ciudad_destino }}</div>
+    <div class="ai-sub">🚛 {{ v.placa }} &nbsp;·&nbsp; Km inicio: {{ "{:,.0f}".format(v.kilometraje_inicio|float).replace(",",".") }} &nbsp;·&nbsp; {{ v.tipo_carga }}</div>
+  </div>
+  <button class="btn-finalizar" onclick="abrirFinalizar({{ v.id }}, '{{ v.ciudad_origen }} → {{ v.ciudad_destino }}', {{ v.kilometraje_inicio|float }}, '{{ v.placa }}', '{{ v.tipo_carga }}')">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+    Finalizar viaje
+  </button>
+</div>
+{% endfor %}
+
+<!-- VIAJES PROGRAMADOS -->
+{% for v in programados %}
+<div class="mv-programado-banner">
+  <div class="mv-prog-icon">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+      <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+    </svg>
+  </div>
+  <div class="mv-prog-info">
+    <div class="pi-label">📋 Viaje programado — #{{ v.id }}</div>
+    <div class="pi-ruta">{{ v.ciudad_origen }} → {{ v.ciudad_destino }}</div>
+    <div class="pi-sub">🚛 {{ v.placa }} &nbsp;·&nbsp; Salida programada: {{ v.fecha_salida | fecha_es('hora') if v.fecha_salida else '—' }} &nbsp;·&nbsp; {{ v.tipo_carga }}</div>
+  </div>
+  <button class="btn-iniciar" onclick="abrirIniciar({{ v.id }}, '{{ v.ciudad_origen }} → {{ v.ciudad_destino }}', {{ v.kilometraje_inicio|float }}, '{{ v.placa }}', '{{ v.tipo_carga }}', '{{ v.combustible_inicio }}')">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+    Iniciar viaje
+  </button>
+</div>
+{% endfor %}
+
+<!-- HISTORIAL -->
+{% if items %}
+<div class="mv-section-title">Historial de viajes</div>
+<div class="mv-list">
+  {% for item in items %}
+  {% set ec = {'Programado':'est-programado','En ruta':'est-en-ruta','Finalizado':'est-finalizado','Cancelado':'est-cancelado'}.get(item.estado,'est-programado') %}
+  <div class="mv-card">
+    <div class="mv-card-header" onclick="toggleMV(this)">
+      <div class="mv-num">#{{ item.id }}</div>
+      <div class="mv-ruta">
+        <h4>{{ item.ciudad_origen }} → {{ item.ciudad_destino }}</h4>
+        <span>{{ item.placa }} · {{ item.tipo_carga }} · {{ item.fecha_salida | fecha_es('hora') if item.fecha_salida else '—' }}</span>
+      </div>
+      <div class="mv-card-actions">
+        {% if item.estado == 'Programado' %}
+        <button class="btn-iniciar btn-sm" onclick="event.stopPropagation(); abrirIniciar({{ item.id }}, '{{ item.ciudad_origen }} → {{ item.ciudad_destino }}', {{ item.kilometraje_inicio|float }}, '{{ item.placa }}', '{{ item.tipo_carga }}', '{{ item.combustible_inicio }}')">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          Iniciar
+        </button>
+        {% elif item.estado == 'En ruta' %}
+        <button class="btn-finalizar btn-sm" onclick="event.stopPropagation(); abrirFinalizar({{ item.id }}, '{{ item.ciudad_origen }} → {{ item.ciudad_destino }}', {{ item.kilometraje_inicio|float }}, '{{ item.placa }}', '{{ item.tipo_carga }}')">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          Finalizar
+        </button>
+        {% endif %}
+        <span class="mv-estado {{ ec }}">{{ item.estado }}</span>
+      </div>
+      <span class="mv-chevron">›</span>
+    </div>
+    <div class="mv-body">
+      <div class="mv-body-inner">
+
+        {# ── BANNER KM RECORRIDOS (solo si el viaje tiene km inicio y fin) ── #}
+        {% if item.kilometraje_fin and item.kilometraje_inicio %}
+        <div class="mv-km-hero visible">
+          <div class="mv-km-stat">
+            <div class="ks-val">{{ "{:,.0f}".format(item.kilometraje_inicio|float).replace(",",".") }}</div>
+            <div class="ks-label">📍 Km inicio</div>
+          </div>
+          <div class="mv-km-divider"></div>
+          <div class="mv-km-stat">
+            <div class="ks-val big">{{ "{:,.0f}".format((item.kilometraje_fin - item.kilometraje_inicio)|float).replace(",",".") }} km</div>
+            <div class="ks-label">🛣️ Distancia recorrida</div>
+          </div>
+          <div class="mv-km-divider"></div>
+          <div class="mv-km-stat">
+            <div class="ks-val">{{ "{:,.0f}".format(item.kilometraje_fin|float).replace(",",".") }}</div>
+            <div class="ks-label">🏁 Km fin</div>
+          </div>
+        </div>
+        {% endif %}
+
+        {# ── GRID DE DETALLES ── #}
+        <div class="mv-detail-grid">
+          <div class="mv-detail-item">
+            <div class="di-label">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="9" width="18" height="9" rx="2"/><path d="M19 13h3l1 4H19"/><circle cx="6" cy="20" r="2"/><circle cx="15" cy="20" r="2"/></svg>
+              Vehículo
+            </div>
+            <div class="di-val mono">{{ item.placa }}</div>
+          </div>
+          <div class="mv-detail-item">
+            <div class="di-label">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l2-1.14"/><polyline points="16.5 9.4 7.55 4.24"/></svg>
+              Tipo de carga
+            </div>
+            <div class="di-val">{{ item.tipo_carga or '—' }}</div>
+          </div>
+          <div class="mv-detail-item">
+            <div class="di-label">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              Estado
+            </div>
+            <div class="di-val"><span class="mv-estado {{ ec }}" style="font-size:10px;">{{ item.estado }}</span></div>
+          </div>
+
+          <div class="mv-detail-item di-blue">
+            <div class="di-label">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              Fecha salida
+            </div>
+            <div class="di-val mono">{{ item.fecha_salida | fecha_es('hora') if item.fecha_salida else '—' }}</div>
+          </div>
+          <div class="mv-detail-item di-blue">
+            <div class="di-label">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              Fecha llegada
+            </div>
+            <div class="di-val mono">{{ item.fecha_llegada | fecha_es('hora') if item.fecha_llegada else 'En curso' }}</div>
+          </div>
+
+          {# Km recorridos resaltado #}
+          <div class="mv-detail-item {% if item.kilometraje_fin and item.kilometraje_inicio %}di-km-highlight{% endif %}">
+            <div class="di-label">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+              Km recorridos
+            </div>
+            <div class="di-val mono">
+              {% if item.kilometraje_fin and item.kilometraje_inicio %}
+                {{ "{:,.0f}".format((item.kilometraje_fin - item.kilometraje_inicio)|float).replace(",",".") }} km
+              {% else %}—{% endif %}
+            </div>
+          </div>
+
+          <div class="mv-detail-item">
+            <div class="di-label">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              Km inicio odómetro
+            </div>
+            <div class="di-val mono">{{ "{:,.0f}".format(item.kilometraje_inicio|float).replace(",",".") }} km</div>
+          </div>
+          <div class="mv-detail-item">
+            <div class="di-label">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="20 6 9 17 4 12"/></svg>
+              Km fin odómetro
+            </div>
+            <div class="di-val mono">{{ "{:,.0f}".format(item.kilometraje_fin|float).replace(",",".") ~ " km" if item.kilometraje_fin else "—" }}</div>
+          </div>
+
+          <div class="mv-detail-item">
+            <div class="di-label">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 22V6a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16"/></svg>
+              Combustible salida
+            </div>
+            <div class="di-val mono">{{ item.combustible_inicio }} L</div>
+          </div>
+          <div class="mv-detail-item">
+            <div class="di-label">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 22V6a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16"/></svg>
+              Combustible llegada
+            </div>
+            <div class="di-val mono">{{ item.combustible_fin ~ " L" if item.combustible_fin else "—" }}</div>
+          </div>
+
+          {% if item.combustible_inicio and item.combustible_fin %}
+          <div class="mv-detail-item" style="background:linear-gradient(135deg,#fef3c7,#fde68a);border-color:rgba(245,158,11,0.3);">
+            <div class="di-label" style="color:#92400e;">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/></svg>
+              Consumo combustible
+            </div>
+            <div class="di-val mono" style="color:#78350f;">{{ (item.combustible_inicio|float - item.combustible_fin|float)|round(1) }} L usados</div>
+          </div>
+          {% endif %}
+        </div>
+
+        {% if item.observaciones %}
+        <div class="mv-obs">
+          <strong>📝 Observaciones:</strong> {{ item.observaciones }}
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="mv-empty">
+  <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="#d6b88a" stroke-width="1.5">
+    <rect x="1" y="9" width="18" height="9" rx="2"/><path d="M19 13h3l1 4H19"/>
+    <circle cx="6" cy="20" r="2"/><circle cx="15" cy="20" r="2"/><path d="M1 9l3-6h12l2 6"/>
+  </svg>
+  <p>Todavía no tienes viajes asignados.</p>
+</div>
+{% endif %}
+
+
+<!-- ════ MODAL INICIAR ════ -->
+<div class="modal-overlay" id="modalIniciar">
+  <div class="modal-box">
+    <div class="modal-head-blue">
+      <div class="mh-icon-blue">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+      </div>
+      <div>
+        <h3>Iniciar viaje</h3>
+        <p id="mi-subtitulo">Confirma los datos de salida</p>
+      </div>
+    </div>
+    <form id="formIniciar">
+      <div class="modal-scroll">
+        <div class="modal-body">
+          <input type="hidden" id="mi-viaje-id">
+
+          <div class="mf-info-card">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:1px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <span>Al confirmar, el viaje cambia a <strong>En ruta</strong>. Asegúrate de que el vehículo esté listo y la carga asegurada.</span>
+          </div>
+
+          <div class="mf-section-title blue">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            Kilometraje de salida
+          </div>
+          <div class="mf-grid">
+            <div class="mf-label">
+              <span>Km actual del odómetro <span style="color:#ef4444;">*</span></span>
+              <input type="number" id="mi-km-inicio" name="kilometraje_inicio" min="0" step="1" placeholder="Ej: 98500" required>
+              <span class="mf-hint">Lectura del odómetro antes de salir</span>
+            </div>
+            <div class="mf-label">
+              <span>Fecha y hora de salida <span style="color:#ef4444;">*</span></span>
+              <input type="datetime-local" name="fecha_salida" id="mi-fecha-salida" required>
+            </div>
+          </div>
+
+          <div class="mf-section-title blue" style="margin-top:4px;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 22V6a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16"/></svg>
+            Combustible y vehículo
+          </div>
+          <div class="mf-grid">
+            <div class="mf-label">
+              <span>Nivel de combustible (L)</span>
+              <input type="number" name="combustible_inicio" id="mi-comb-inicio" step="0.1" min="0" placeholder="Ej: 450">
+              <span class="mf-hint">Litros en el tanque al salir</span>
+            </div>
+            <div class="mf-label">
+              <span>Vehículo / Carga</span>
+              <input type="text" id="mi-placa-display" readonly class="mf-readonly">
+            </div>
+          </div>
+
+          <div class="mf-section-title blue" style="margin-top:4px;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/></svg>
+            Observaciones de salida
+          </div>
+          <div class="mf-grid">
+            <div class="mf-label full">
+              <span>Novedades al salir</span>
+              <textarea name="observaciones" placeholder="Estado del vehículo, condiciones de carga, instrucciones recibidas..."></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="mf-cancel-btn" onclick="cerrarModalIniciar()">Cancelar</button>
+        <button type="submit" class="mf-confirm-blue" id="mi-confirm-btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          Confirmar salida
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+
+<!-- ════ MODAL FINALIZAR ════ -->
+<div class="modal-overlay" id="modalFinalizar">
+  <div class="modal-box">
+    <div class="modal-head-green">
+      <div class="mh-icon-green">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <div>
+        <h3>Finalizar viaje</h3>
+        <p id="mf-subtitulo">Completa los datos de cierre</p>
+      </div>
+    </div>
+    <form id="formFinalizar">
+      <div class="modal-scroll">
+        <div class="modal-body">
+          <input type="hidden" id="mf-viaje-id">
+          <input type="hidden" id="mf-km-inicio-val">
+
+          <div class="mf-section-title green">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            Kilometraje de llegada
+          </div>
+          <div class="mf-grid">
+            <div class="mf-label">
+              <span>Km inicio (referencia)</span>
+              <input type="text" id="mf-km-inicio-display" readonly class="mf-readonly">
+            </div>
+            <div class="mf-label">
+              <span>Km final del odómetro <span style="color:#ef4444;">*</span></span>
+              <input type="number" id="mf-km-fin" name="kilometraje_fin" min="0" step="1" placeholder="Ej: 125430" required oninput="calcularKm()">
+              <span class="mf-hint">Lectura actual del odómetro</span>
+            </div>
+            <div class="mf-km-result" id="mf-km-result">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+              Distancia recorrida: <span class="mf-km-val" id="mf-km-calc">—</span>
+            </div>
+          </div>
+
+          <div class="mf-section-title green" style="margin-top:4px;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 22V6a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16"/></svg>
+            Combustible y llegada
+          </div>
+          <div class="mf-grid">
+            <div class="mf-label">
+              <span>Combustible final (L)</span>
+              <input type="number" name="combustible_fin" step="0.1" min="0" placeholder="Ej: 280">
+              <span class="mf-hint">Litros restantes al llegar</span>
+            </div>
+            <div class="mf-label">
+              <span>Fecha y hora de llegada <span style="color:#ef4444;">*</span></span>
+              <input type="datetime-local" name="fecha_llegada" id="mf-fecha-llegada" required>
+            </div>
+          </div>
+
+          <div class="mf-section-title green" style="margin-top:4px;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 0 0 1.946-.806 3.42 3.42 0 0 1 4.438 0 3.42 3.42 0 0 0 1.946.806 3.42 3.42 0 0 1 3.138 3.138"/></svg>
+            Condiciones del viaje
+          </div>
+          <div class="mf-grid">
+            <div class="mf-label">
+              <span>Estado de la vía</span>
+              <select name="estado_via">
+                <option value="">— Seleccionar —</option>
+                <option value="Buena">✅ Buena</option>
+                <option value="Regular">⚠️ Regular</option>
+                <option value="Mala">❌ Mala</option>
+                <option value="Con obras">🚧 Con obras</option>
+              </select>
+            </div>
+            <div class="mf-label">
+              <span>¿Entrega completada?</span>
+              <select name="entrega_completada">
+                <option value="Si">✅ Sí, entrega completa</option>
+                <option value="Parcial">⚠️ Entrega parcial</option>
+                <option value="No">❌ No se realizó</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="mf-section-title green" style="margin-top:4px;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5l3 3L12 15l-4 1 1-4z"/></svg>
+            Observaciones finales
+          </div>
+          <div class="mf-grid">
+            <div class="mf-label full">
+              <span>Novedades del viaje</span>
+              <textarea name="observaciones" placeholder="Condiciones de la vía, entrega realizada, novedades, estado del vehículo al llegar, incidentes menores..."></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="mf-cancel-btn" onclick="cerrarModalFinalizar()">Cancelar</button>
+        <button type="submit" class="mf-confirm-green" id="mf-confirm-btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          Confirmar llegada
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+
+<script>
+/* ACCORDION */
+function toggleMV(header) {
+  const body = header.nextElementSibling;
+  const chev = header.querySelector('.mv-chevron');
+  const isOpen = body.classList.contains('open');
+  document.querySelectorAll('.mv-body').forEach(b => b.classList.remove('open'));
+  document.querySelectorAll('.mv-chevron').forEach(c => c.classList.remove('open'));
+  if (!isOpen) { body.classList.add('open'); chev.classList.add('open'); }
+}
+
+/* MODAL INICIAR */
+function abrirIniciar(id, ruta, kmInicio, placa, carga, combustibleInicio) {
+  document.getElementById('mi-viaje-id').value = id;
+  document.getElementById('mi-subtitulo').textContent = ruta + ' · ' + placa;
+  document.getElementById('mi-placa-display').value = placa + ' — ' + carga;
+  document.getElementById('mi-km-inicio').placeholder = 'Ej: ' + Math.round(kmInicio);
+  document.getElementById('mi-km-inicio').value = '';
+  if (combustibleInicio && combustibleInicio !== 'None') document.getElementById('mi-comb-inicio').value = combustibleInicio;
+  const now = new Date(); now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+  document.getElementById('mi-fecha-salida').value = now.toISOString().slice(0,16);
+  document.getElementById('modalIniciar').classList.add('open');
+  setTimeout(() => document.getElementById('mi-km-inicio').focus(), 300);
+}
+function cerrarModalIniciar() { document.getElementById('modalIniciar').classList.remove('open'); }
+document.getElementById('modalIniciar').addEventListener('click', e => { if (e.target === document.getElementById('modalIniciar')) cerrarModalIniciar(); });
+
+document.getElementById('formIniciar').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const btn = document.getElementById('mi-confirm-btn');
+  btn.disabled = true;
+  btn.innerHTML = '⏳ Iniciando...';
+  const id = document.getElementById('mi-viaje-id').value;
+  try {
+    const r = await fetch('/mis-viajes/iniciar/' + id, { method:'POST', body: new FormData(this) });
+    const d = await r.json();
+    if (d.ok) {
+      cerrarModalIniciar();
+      showToast('🚛 ¡Viaje iniciado! Buen camino.', 'success');
+      setTimeout(() => location.reload(), 1200);
+    } else {
+      showToast('Error: ' + (d.msg || 'No se pudo iniciar.'), 'error');
+      btn.disabled = false;
+      btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" style="display:inline;vertical-align:middle;margin-right:5px;"><polygon points="5 3 19 12 5 21 5 3"/></svg>Confirmar salida';
+    }
+  } catch { showToast('Error de conexión.', 'error'); btn.disabled = false; btn.innerHTML = 'Confirmar salida'; }
+});
+
+/* MODAL FINALIZAR */
+function abrirFinalizar(id, ruta, kmInicio, placa, carga) {
+  document.getElementById('mf-viaje-id').value = id;
+  document.getElementById('mf-km-inicio-val').value = kmInicio;
+  document.getElementById('mf-km-inicio-display').value = Math.round(kmInicio).toLocaleString('es-CO') + ' km';
+  document.getElementById('mf-subtitulo').textContent = ruta + ' · ' + placa;
+  document.getElementById('mf-km-fin').value = '';
+  document.getElementById('mf-km-result').classList.remove('visible','error');
+  const now = new Date(); now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+  document.getElementById('mf-fecha-llegada').value = now.toISOString().slice(0,16);
+  document.getElementById('modalFinalizar').classList.add('open');
+  setTimeout(() => document.getElementById('mf-km-fin').focus(), 300);
+}
+function cerrarModalFinalizar() { document.getElementById('modalFinalizar').classList.remove('open'); }
+document.getElementById('modalFinalizar').addEventListener('click', e => { if (e.target === document.getElementById('modalFinalizar')) cerrarModalFinalizar(); });
+
+function calcularKm() {
+  const kmIni = parseFloat(document.getElementById('mf-km-inicio-val').value) || 0;
+  const kmFin = parseFloat(document.getElementById('mf-km-fin').value);
+  const result = document.getElementById('mf-km-result');
+  const calc   = document.getElementById('mf-km-calc');
+  result.classList.remove('error');
+  if (!isNaN(kmFin) && kmFin > kmIni) {
+    calc.textContent = Math.round(kmFin - kmIni).toLocaleString('es-CO') + ' km';
+    result.classList.add('visible');
+    document.getElementById('mf-km-fin').style.borderColor = '#10b981';
+  } else if (!isNaN(kmFin) && kmFin > 0 && kmFin <= kmIni) {
+    calc.textContent = '⚠ El km final debe ser mayor al km inicio';
+    result.classList.add('visible','error');
+    document.getElementById('mf-km-fin').style.borderColor = '#ef4444';
+  } else {
+    result.classList.remove('visible');
+    document.getElementById('mf-km-fin').style.borderColor = '';
+  }
+}
+
+document.getElementById('formFinalizar').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const kmIni = parseFloat(document.getElementById('mf-km-inicio-val').value) || 0;
+  const kmFin = parseFloat(document.getElementById('mf-km-fin').value);
+  if (kmFin <= kmIni) { showToast('El km final debe ser mayor al km inicial (' + Math.round(kmIni).toLocaleString('es-CO') + ' km).', 'error'); return; }
+  const btn = document.getElementById('mf-confirm-btn');
+  btn.disabled = true; btn.innerHTML = '⏳ Guardando...';
+  const id = document.getElementById('mf-viaje-id').value;
+  try {
+    const r = await fetch('/mis-viajes/finalizar/' + id, { method:'POST', body: new FormData(this) });
+    const d = await r.json();
+    if (d.ok) {
+      cerrarModalFinalizar();
+      showToast('✅ ¡Viaje finalizado exitosamente!', 'success');
+      setTimeout(() => location.reload(), 1200);
+    } else {
+      showToast('Error: ' + (d.msg || 'No se pudo finalizar.'), 'error');
+      btn.disabled = false;
+      btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" style="display:inline;vertical-align:middle;margin-right:5px;"><polyline points="20 6 9 17 4 12"/></svg>Confirmar llegada';
+    }
+  } catch { showToast('Error de conexión.', 'error'); btn.disabled = false; btn.innerHTML = 'Confirmar llegada'; }
+});
+
+/* TOAST */
+function showToast(msg, type) {
+  const t = document.createElement('div');
+  t.textContent = msg;
+  t.style.cssText = `position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(20px);
+    background:${type==='success'?'linear-gradient(135deg,#059669,#065f46)':'linear-gradient(135deg,#dc2626,#991b1b)'};
+    color:white;font-size:13.5px;font-weight:700;padding:13px 24px;border-radius:13px;
+    box-shadow:0 8px 32px rgba(0,0,0,0.25);z-index:99999;opacity:0;
+    transition:all 0.35s cubic-bezier(.22,1,.36,1);max-width:90vw;text-align:center;`;
+  document.body.appendChild(t);
+  requestAnimationFrame(() => { t.style.opacity='1'; t.style.transform='translateX(-50%) translateY(0)'; });
+  setTimeout(() => { t.style.opacity='0'; t.style.transform='translateX(-50%) translateY(10px)'; setTimeout(()=>t.remove(),400); }, 3000);
+}
+</script>
+
+{% endblock %}
