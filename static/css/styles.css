@@ -1424,9 +1424,11 @@ button:not(.lc-eye-btn):not(.lc-demo-toggle):not(.toggle-pwd):active {
 }
 /* Hover card popup — se abre solo por click (ver app.js) */
 .sf-hover-card {
-  position: fixed;
-  bottom: 80px; left: 15px;
-  width: 230px;
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 0;
+  width: 100%;
+  min-width: 210px;
   background: #1a1a1a;
   border: 1px solid rgba(251,191,36,0.2);
   border-radius: 16px;
@@ -2016,6 +2018,7 @@ button:active { transform: scale(0.97) translateY(0) !important; box-shadow: 0 2
   border-top: 1px solid rgba(251,191,36,0.08);
 }
 .sf-user {
+  position: relative;
   padding: 10px 12px;
   border-radius: 12px;
   border: 1px solid rgba(251,191,36,0.08);
@@ -2510,15 +2513,17 @@ button:active { transform: scale(0.97) translateY(0) !important; box-shadow: 0 2
 /* ── Fix hover card de usuario en móvil ── */
 @media (max-width: 820px) {
   .sf-hover-card {
-    position: fixed !important;
-    bottom: 90px !important;
-    left: 10px !important;
-    width: 240px !important;
+    position: absolute !important;
+    bottom: calc(100% + 10px) !important;
+    left: 0 !important;
+    width: 100% !important;
+    min-width: 210px !important;
     z-index: 9999 !important;
   }
 
   /* Hacer el trigger más grande para dedos */
   .sf-user {
+    position: relative !important;
     padding: 12px 10px !important;
     cursor: pointer !important;
     min-height: 56px !important;
