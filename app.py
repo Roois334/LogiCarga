@@ -391,44 +391,49 @@ def usuarios():
 
     if request.method == 'POST':
         try:
-            # Insertar usuario
-            hashed_pw = _hash_password(request.form['password'])
+            logger.info("usuarios POST keys: %s", list(request.form.keys()))
+            logger.info("usuarios POST data: %s", dict(request.form))
+
+            rol_id   = request.form.get('rol_id', '').strip()
+            nombre   = (request.form.get('nombre') or request.form.get('nombre_conductor', '')).strip()
+            correo   = (request.form.get('correo') or request.form.get('correo_conductor', '')).strip()
+            password = (request.form.get('password') or request.form.get('password_conductor', '')).strip()
+            telefono = (request.form.get('telefono') or request.form.get('telefono_conductor', '')).strip()
+
+            if not rol_id or not nombre or not correo or not password:
+                flash(f'Faltan campos: rol={rol_id} nombre={nombre} correo={correo}', 'error')
+                return redirect(url_for('usuarios'))
+
+            hashed_pw = _hash_password(password)
             execute_query(
                 "INSERT INTO usuarios (rol_id, nombre, correo, password, telefono, activo) VALUES (%s,%s,%s,%s,%s,1)",
-                (request.form['rol_id'], request.form['nombre'], request.form['correo'],
-                 hashed_pw, request.form.get('telefono', ''))
+                (rol_id, nombre, correo, hashed_pw, telefono)
             )
-            # Si es Conductor, crear también su registro en conductores
-            rol_conductor = fetch_all(
-                "SELECT id FROM roles WHERE nombre='Conductor' LIMIT 1"
-            )
+
+            rol_conductor    = fetch_all("SELECT id FROM roles WHERE nombre='Conductor' LIMIT 1")
             rol_conductor_id = rol_conductor[0]['id'] if rol_conductor else None
-            if str(request.form['rol_id']) == str(rol_conductor_id):
-                nuevo_usuario = fetch_all(
-                    "SELECT id FROM usuarios WHERE correo=%s LIMIT 1",
-                    (request.form['correo'],)
-                )
-                if nuevo_usuario and request.form.get('numero_licencia'):
+
+            if str(rol_id) == str(rol_conductor_id):
+                nuevo_usuario = fetch_all("SELECT id FROM usuarios WHERE correo=%s LIMIT 1", (correo,))
+                if nuevo_usuario:
                     execute_query(
                         """INSERT INTO conductores
                            (usuario_id, nombre_completo, numero_licencia, tipo_licencia,
-                            telefono, email, direccion, ciudad, fecha_vencimiento_licencia, estado)
-                           VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)""",
-                        (nuevo_usuario[0]['id'],
-                         request.form['nombre'],
-                         request.form['numero_licencia'],
+                            telefono, email, ciudad, fecha_vencimiento_licencia, estado)
+                           VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)""",
+                        (nuevo_usuario[0]['id'], nombre,
+                         request.form.get('numero_licencia') or None,
                          request.form.get('tipo_licencia') or None,
-                         request.form.get('telefono'),
-                         request.form.get('correo'),
-                         request.form.get('direccion_conductor'),
-                         request.form.get('ciudad_conductor'),
+                         telefono or None, correo,
+                         request.form.get('ciudad_conductor') or None,
                          request.form.get('fecha_vencimiento_licencia') or None,
                          'Activo')
                     )
+
             flash('Usuario creado correctamente.', 'success')
         except Exception as e:
-            flash('Error al crear el usuario.', 'error')
-            logger.error("usuarios POST error: %s", e)
+            flash(f'Error: {str(e)}', 'error')
+            logger.error("usuarios POST error: %s", e, exc_info=True)
         return redirect(url_for('usuarios'))
 
     try:
