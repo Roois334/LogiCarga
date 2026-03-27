@@ -382,68 +382,24 @@ def dashboard():
                            is_conductor=is_conductor)
 
 
-@app.route('/usuarios', methods=['GET', 'POST'])
+@app.route('/usuarios')
 @login_required
 def usuarios():
     if session['user']['rol'] != 'Administrador':
         flash('No tienes permisos para acceder a esta sección.', 'error')
         return redirect(url_for('dashboard'))
-
-    if request.method == 'POST':
-        try:
-            logger.info("usuarios POST keys: %s", list(request.form.keys()))
-            logger.info("usuarios POST data: %s", dict(request.form))
-
-            rol_id   = request.form.get('rol_id', '').strip()
-            nombre   = (request.form.get('nombre') or request.form.get('nombre_conductor', '')).strip()
-            correo   = (request.form.get('correo') or request.form.get('correo_conductor', '')).strip()
-            password = (request.form.get('password') or request.form.get('password_conductor', '')).strip()
-            telefono = (request.form.get('telefono') or request.form.get('telefono_conductor', '')).strip()
-
-            if not rol_id or not nombre or not correo or not password:
-                flash(f'Faltan campos: rol={rol_id} nombre={nombre} correo={correo}', 'error')
-                return redirect(url_for('usuarios'))
-
-            hashed_pw = _hash_password(password)
-            execute_query(
-                "INSERT INTO usuarios (rol_id, nombre, correo, password, telefono, activo) VALUES (%s,%s,%s,%s,%s,1)",
-                (rol_id, nombre, correo, hashed_pw, telefono)
-            )
-
-            rol_conductor    = fetch_all("SELECT id FROM roles WHERE nombre='Conductor' LIMIT 1")
-            rol_conductor_id = rol_conductor[0]['id'] if rol_conductor else None
-
-            if str(rol_id) == str(rol_conductor_id):
-                nuevo_usuario = fetch_all("SELECT id FROM usuarios WHERE correo=%s LIMIT 1", (correo,))
-                if nuevo_usuario:
-                    execute_query(
-                        """INSERT INTO conductores
-                           (usuario_id, nombre_completo, numero_licencia, tipo_licencia,
-                            telefono, email, ciudad, fecha_vencimiento_licencia, estado)
-                           VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)""",
-                        (nuevo_usuario[0]['id'], nombre,
-                         request.form.get('numero_licencia') or None,
-                         request.form.get('tipo_licencia') or None,
-                         telefono or None, correo,
-                         request.form.get('ciudad_conductor') or None,
-                         request.form.get('fecha_vencimiento_licencia') or None,
-                         'Activo')
-                    )
-
-            flash('Usuario creado correctamente.', 'success')
-        except Exception as e:
-            flash(f'Error: {str(e)}', 'error')
-            logger.error("usuarios POST error: %s", e, exc_info=True)
-        return redirect(url_for('usuarios'))
-
     try:
-        data  = fetch_all("""SELECT u.id, u.nombre, u.correo, u.telefono, u.activo, r.nombre AS rol, c.numero_licencia, c.tipo_licencia, c.fecha_vencimiento_licencia, c.ciudad, c.direccion FROM usuarios u INNER JOIN roles r ON r.id = u.rol_id LEFT JOIN conductores c ON c.usuario_id = u.id ORDER BY u.id DESC""")
-        roles = fetch_all('SELECT * FROM roles ORDER BY id')
+        data  = fetch_all("""SELECT u.id, u.nombre, u.correo, u.telefono, u.activo, r.nombre AS rol,
+                           c.numero_licencia, c.tipo_licencia, c.fecha_vencimiento_licencia, c.ciudad
+                           FROM usuarios u
+                           INNER JOIN roles r ON r.id = u.rol_id
+                           LEFT  JOIN conductores c ON c.usuario_id = u.id
+                           ORDER BY u.id DESC""")
     except Exception as e:
         flash('Error al cargar usuarios.', 'error')
-        logger.error("usuarios GET error: %s", e)
-        data, roles = [], []
-    return render_template('usuarios.html', items=data, roles=roles)
+        logger.error('usuarios GET error: %s', e)
+        data = []
+    return render_template('usuarios.html', items=data)
 
 
 @app.route('/conductores', methods=['GET', 'POST'])
