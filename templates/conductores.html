@@ -66,18 +66,52 @@
 .cond-field { display: flex; flex-direction: column; gap: 5px; font-size: 12.5px; font-weight: 600; color: var(--text-mid); }
 .cond-field.full { grid-column: 1 / -1; }
 
-/* Wrapper para campo con ojo */
+/* Wrapper para campo con ojo — igual que login */
 .cond-input-wrap {
-  position: relative; display: flex; align-items: center;
+  display: flex; align-items: center;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  background: var(--off-white);
+  transition: border-color 0.18s, box-shadow 0.18s;
+  overflow: hidden;
 }
-.cond-input-wrap input { width: 100%; padding-right: 42px !important; box-sizing: border-box; }
+.cond-input-wrap:focus-within {
+  border-color: var(--amber-400);
+  box-shadow: 0 0 0 3px rgba(245,158,11,0.12);
+  background: #fff;
+}
+.cond-input-wrap input {
+  flex: 1; min-width: 0;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  border-radius: 0 !important;
+  padding: 9px 12px;
+}
+.cond-input-wrap input:focus {
+  border: none !important;
+  box-shadow: none !important;
+}
 .btn-eye {
-  position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
-  background: none; border: none; cursor: pointer; padding: 4px;
-  color: var(--muted); transition: color 0.18s; display: flex; align-items: center;
-  border-radius: 6px; line-height: 0;
+  flex-shrink: 0;
+  width: 38px; height: 38px;
+  margin-right: 2px; padding: 0;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  -webkit-appearance: none; appearance: none;
+  cursor: pointer;
+  color: var(--muted);
+  display: flex; align-items: center; justify-content: center;
+  transition: color 0.2s, transform 0.2s;
+  border-radius: 0 !important;
 }
-.btn-eye:hover { color: var(--amber-600); }
+.btn-eye:focus { outline: none !important; box-shadow: none !important; }
+.btn-eye:hover { color: var(--amber-600); transform: scale(1.15); }
+.btn-eye:active { transform: scale(0.92); }
+.btn-eye svg { display: block; }
 
 .cond-field input,
 .cond-field select {
@@ -321,11 +355,15 @@
             <input id="password" name="password" type="password"
                    placeholder="Mínimo 8 caracteres" maxlength="64" autocomplete="new-password">
             <button type="button" class="btn-eye" id="btnEye1"
-                    onclick="togglePwd('password','btnEye1','iconEye1')"
+                    onclick="togglePwd('password','eyeShow1','eyeHide1','btnEye1')"
                     tabindex="-1" aria-label="Mostrar contraseña">
-              <svg id="iconEye1" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                <circle cx="12" cy="12" r="3"/>
+              <svg id="eyeShow1" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+              </svg>
+              <svg id="eyeHide1" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none">
+                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+                <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+                <line x1="1" y1="1" x2="23" y2="23"/>
               </svg>
             </button>
           </div>
@@ -344,11 +382,15 @@
             <input id="password_confirm" name="password_confirm" type="password"
                    placeholder="Repite la contraseña" maxlength="64" autocomplete="new-password">
             <button type="button" class="btn-eye" id="btnEye2"
-                    onclick="togglePwd('password_confirm','btnEye2','iconEye2')"
+                    onclick="togglePwd('password_confirm','eyeShow2','eyeHide2','btnEye2')"
                     tabindex="-1" aria-label="Mostrar contraseña">
-              <svg id="iconEye2" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                <circle cx="12" cy="12" r="3"/>
+              <svg id="eyeShow2" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+              </svg>
+              <svg id="eyeHide2" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none">
+                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+                <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+                <line x1="1" y1="1" x2="23" y2="23"/>
               </svg>
             </button>
           </div>
@@ -495,23 +537,25 @@
 
 const SVG_OK  = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>`;
 const SVG_ERR = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
-const SVG_EYE_OPEN = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`;
-const SVG_EYE_SHUT = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>`;
 
-/* ── Toggle ver/ocultar contraseña ── */
-function togglePwd(inputId, btnId, iconId) {
-  const inp  = document.getElementById(inputId);
-  const icon = document.getElementById(iconId);
-  const btn  = document.getElementById(btnId);
-  if (inp.type === 'password') {
-    inp.type = 'text';
-    icon.outerHTML = SVG_EYE_SHUT.replace('<svg ', `<svg id="${iconId}" `);
-    btn.style.color = 'var(--amber-600)';
-  } else {
-    inp.type = 'password';
-    icon.outerHTML = SVG_EYE_OPEN.replace('<svg ', `<svg id="${iconId}" `);
-    btn.style.color = '';
-  }
+
+/* ── Toggle ver/ocultar contraseña — mismo sistema que login ── */
+function togglePwd(inputId, showId, hideId, btnId) {
+  var inp    = document.getElementById(inputId);
+  var show   = document.getElementById(showId);
+  var hide   = document.getElementById(hideId);
+  var btn    = document.getElementById(btnId);
+  var oculto = inp.type === 'password';
+  inp.type         = oculto ? 'text'    : 'password';
+  show.style.display = oculto ? 'none'  : 'block';
+  hide.style.display = oculto ? 'block' : 'none';
+  btn.style.color    = oculto ? 'var(--amber-600)' : '';
+  /* micro-bounce igual que login */
+  btn.animate([
+    { transform: 'scale(1)' },
+    { transform: 'scale(1.35)' },
+    { transform: 'scale(1)' }
+  ], { duration: 260, easing: 'cubic-bezier(.22,1,.36,1)' });
 }
 
 /* ── Helpers ── */
@@ -751,12 +795,14 @@ function limpiarFormulario() {
     el.innerHTML = ''; el.className = 'field-msg';
   });
   document.getElementById('pwdStrengthWrap').style.display = 'none';
-  // Restaurar íconos de ojo
+  // Restaurar íconos de ojo — mismo sistema que login
   ['password','password_confirm'].forEach(id => {
     document.getElementById(id).type = 'password';
   });
-  document.getElementById('iconEye1').outerHTML = SVG_EYE_OPEN.replace('<svg ', '<svg id="iconEye1" ');
-  document.getElementById('iconEye2').outerHTML = SVG_EYE_OPEN.replace('<svg ', '<svg id="iconEye2" ');
+  document.getElementById('eyeShow1').style.display = 'block';
+  document.getElementById('eyeHide1').style.display = 'none';
+  document.getElementById('eyeShow2').style.display = 'block';
+  document.getElementById('eyeHide2').style.display = 'none';
   document.getElementById('btnEye1').style.color = '';
   document.getElementById('btnEye2').style.color = '';
 }
