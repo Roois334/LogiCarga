@@ -1,0 +1,717 @@
+{% extends 'base.html' %}
+{% block title %}Supervisores | LogiCarga{% endblock %}
+{% block content %}
+
+<style>
+/* ══════════════════════════════════════════════════
+   SUPERVISORES — diseño compacto coherente LogiCarga
+══════════════════════════════════════════════════ */
+.cond-hero {
+  display: flex; align-items: center; gap: 16px;
+  background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 60%, #3b82f6 100%);
+  border-radius: 18px; padding: 22px 28px; margin-bottom: 24px;
+  box-shadow: 0 8px 32px rgba(30,58,138,0.20);
+  position: relative; overflow: hidden;
+}
+.cond-hero::before {
+  content: ''; position: absolute; right: -30px; top: -30px;
+  width: 140px; height: 140px; border-radius: 50%;
+  background: rgba(255,255,255,0.07);
+}
+.cond-hero-icon {
+  width: 52px; height: 52px; border-radius: 15px; flex-shrink: 0;
+  background: rgba(255,255,255,0.15); backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center;
+  border: 1.5px solid rgba(255,255,255,0.20);
+}
+.cond-hero-text h2 { margin: 0 0 3px; font-size: 20px; font-weight: 800; color: #fff; }
+.cond-hero-text p  { margin: 0; font-size: 13px; color: rgba(255,255,255,0.78); }
+
+.flash-msg {
+  padding: 12px 18px; border-radius: 12px; font-size: 13px; font-weight: 600;
+  margin-bottom: 16px; display: flex; align-items: center; gap: 10px;
+}
+.flash-success { background: var(--success-bg); color: var(--success-text); border: 1px solid #a7f3d0; }
+.flash-error   { background: var(--error-bg);   color: var(--error-text);   border: 1px solid #fecdd3; }
+
+.cond-form-card {
+  background: #fff; border-radius: 18px;
+  border: 1.5px solid var(--border);
+  box-shadow: 0 4px 24px var(--shadow);
+  margin-bottom: 24px; overflow: hidden;
+}
+.cond-form-header {
+  padding: 18px 24px 16px;
+  border-bottom: 1.5px solid #dbeafe;
+  display: flex; align-items: center; gap: 12px;
+}
+.cond-form-header-icon {
+  width: 36px; height: 36px; border-radius: 10px;
+  background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+  display: flex; align-items: center; justify-content: center;
+}
+.cond-form-header h3 { margin: 0; font-size: 15px; font-weight: 800; color: #1e40af; }
+.cond-form-header p  { margin: 2px 0 0; font-size: 12px; color: var(--muted); }
+.cond-form-body { padding: 20px 24px 24px; }
+
+.cond-section-label {
+  font-size: 10.5px; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 0.10em; color: #2563eb;
+  margin: 0 0 12px; display: flex; align-items: center; gap: 8px;
+}
+.cond-section-label::after { content: ''; flex: 1; height: 1px; background: #dbeafe; }
+
+.cond-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 18px; }
+.cond-field { display: flex; flex-direction: column; gap: 5px; font-size: 12.5px; font-weight: 600; color: var(--text-mid); }
+.cond-field.full { grid-column: 1 / -1; }
+
+/* Wrapper para campo con ojo */
+.cond-input-wrap {
+  display: flex; align-items: center;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  background: var(--off-white);
+  transition: border-color 0.18s, box-shadow 0.18s;
+  overflow: hidden;
+}
+.cond-input-wrap:focus-within {
+  border-color: #60a5fa;
+  box-shadow: 0 0 0 3px rgba(59,130,246,0.12);
+  background: #fff;
+}
+.cond-input-wrap input {
+  flex: 1; min-width: 0;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  border-radius: 0 !important;
+  padding: 9px 12px;
+}
+.cond-input-wrap input:focus {
+  border: none !important;
+  box-shadow: none !important;
+}
+.btn-eye {
+  flex-shrink: 0;
+  width: 38px; height: 38px;
+  margin-right: 2px; padding: 0;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  -webkit-appearance: none; appearance: none;
+  cursor: pointer;
+  color: var(--muted);
+  display: flex; align-items: center; justify-content: center;
+  transition: color 0.2s, transform 0.2s;
+  border-radius: 0 !important;
+}
+.btn-eye:focus { outline: none !important; box-shadow: none !important; }
+.btn-eye:hover { color: #2563eb; transform: scale(1.15); }
+.btn-eye:active { transform: scale(0.92); }
+.btn-eye svg { display: block; }
+
+.cond-field input,
+.cond-field select {
+  padding: 9px 12px; border-radius: 10px;
+  border: 1.5px solid var(--border);
+  font-size: 13px; font-family: inherit;
+  background: var(--off-white); color: var(--text);
+  transition: border-color 0.18s, box-shadow 0.18s; outline: none;
+  box-sizing: border-box; width: 100%;
+}
+.cond-field input:focus,
+.cond-field select:focus {
+  border-color: #60a5fa;
+  box-shadow: 0 0 0 3px rgba(59,130,246,0.12);
+  background: #fff;
+}
+/* Estados de validación */
+.cond-field input.field-ok  { border-color: #10b981 !important; }
+.cond-field input.field-err { border-color: #ef4444 !important; box-shadow: 0 0 0 3px rgba(239,68,68,0.10) !important; }
+.cond-field input.field-ok:focus  { box-shadow: 0 0 0 3px rgba(16,185,129,0.14) !important; }
+.cond-field input.field-err:focus { box-shadow: 0 0 0 3px rgba(239,68,68,0.14) !important; }
+
+.cond-field input::placeholder { color: var(--muted); }
+.req { color: #ef4444; margin-left: 2px; }
+
+/* Mensaje inline */
+.field-msg {
+  font-size: 11px; font-weight: 600; margin-top: 2px; min-height: 16px;
+  display: flex; align-items: center; gap: 5px; line-height: 1.3;
+}
+.field-msg.err { color: #dc2626; }
+.field-msg.ok  { color: #059669; }
+
+/* Barra de fortaleza */
+.pwd-strength-wrap { margin-top: 5px; }
+.pwd-strength-bar {
+  height: 4px; border-radius: 4px; background: var(--border); overflow: hidden;
+}
+.pwd-strength-fill {
+  height: 100%; border-radius: 4px; width: 0%;
+  transition: width 0.35s ease, background-color 0.35s ease;
+}
+.pwd-strength-text {
+  font-size: 10.5px; font-weight: 700; margin-top: 4px; transition: color 0.3s;
+}
+
+.cond-actions {
+  display: flex; justify-content: flex-end; gap: 10px;
+  padding-top: 16px; border-top: 1.5px solid #dbeafe;
+}
+.btn-reset {
+  padding: 10px 20px; border-radius: 11px;
+  border: 1.5px solid var(--border); background: #fff;
+  font-size: 13px; font-weight: 700; color: var(--text-mid);
+  cursor: pointer; transition: all 0.18s;
+}
+.btn-reset:hover { border-color: #93c5fd; color: #1d4ed8; }
+.btn-guardar {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 24px; border-radius: 11px; border: none;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: #fff; font-size: 13px; font-weight: 800;
+  cursor: pointer; box-shadow: 0 4px 14px rgba(37,99,235,0.35); transition: all 0.2s;
+}
+.btn-guardar:hover { transform: translateY(-1px); box-shadow: 0 8px 22px rgba(37,99,235,0.45); }
+
+/* LISTADO */
+.cond-list-card {
+  background: #fff; border-radius: 18px;
+  border: 1.5px solid var(--border);
+  box-shadow: 0 4px 24px var(--shadow); overflow: hidden;
+}
+.cond-list-header {
+  padding: 18px 24px 16px;
+  border-bottom: 1.5px solid #dbeafe;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+}
+.cond-list-header h3 { margin: 0; font-size: 15px; font-weight: 800; color: #1e40af; }
+.cond-count {
+  background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+  color: #1e40af; font-size: 11px; font-weight: 800;
+  padding: 3px 10px; border-radius: 20px; border: 1px solid #93c5fd;
+}
+.cond-search-wrap { padding: 14px 24px; border-bottom: 1px solid #eff6ff; }
+.cond-search {
+  width: 100%; padding: 9px 14px 9px 38px;
+  border-radius: 10px; border: 1.5px solid var(--border);
+  font-size: 13px; font-family: inherit; background: var(--off-white);
+  outline: none; transition: border-color 0.18s, box-shadow 0.18s;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='15' height='15' viewBox='0 0 24 24' fill='none' stroke='%238a7060' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: 12px center; box-sizing: border-box;
+}
+.cond-search:focus { border-color: #60a5fa; box-shadow: 0 0 0 3px rgba(59,130,246,0.10); background-color: #fff; }
+.cond-table-wrap { overflow-x: auto; }
+.cond-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.cond-table thead tr {
+  background: linear-gradient(90deg, #f0f9ff, #eff6ff);
+  border-bottom: 1.5px solid #dbeafe;
+}
+.cond-table th {
+  padding: 11px 14px; text-align: left;
+  font-size: 10.5px; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 0.08em; color: #1d4ed8; white-space: nowrap;
+}
+.cond-table tbody tr { border-bottom: 1px solid #eff6ff; transition: background 0.14s; }
+.cond-table tbody tr:hover { background: #f0f9ff; }
+.cond-table tbody tr:last-child { border-bottom: none; }
+.cond-table td { padding: 11px 14px; vertical-align: middle; }
+.est-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700;
+}
+.est-activo   { background:#ecfdf5; color:#065f46; border:1px solid #a7f3d0; }
+.est-inactivo { background:#fef2f2; color:#991b1b; border:1px solid #fecdd3; }
+.cond-avatar {
+  width: 34px; height: 34px; border-radius: 10px; flex-shrink: 0;
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: 13px; font-weight: 800;
+}
+.cond-name-cell { display: flex; align-items: center; gap: 10px; }
+.cond-name-wrap strong { font-size: 13px; color: var(--text); display: block; }
+.cond-contact { display: flex; flex-direction: column; gap: 1px; }
+.cond-contact strong { font-size: 12.5px; }
+.cond-contact span   { font-size: 11px; color: var(--muted); }
+.no-data { font-size: 12px; color: var(--muted); }
+.cond-empty { padding: 48px 24px; text-align: center; color: var(--muted); }
+.cond-empty p { font-size: 14px; margin: 8px 0 0; }
+
+@media (max-width: 768px) {
+  .cond-grid { grid-template-columns: 1fr; }
+  .cond-field.full { grid-column: 1; }
+}
+</style>
+
+<!-- HERO -->
+<div class="cond-hero">
+  <div class="cond-hero-icon">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+      <circle cx="9" cy="7" r="4"/>
+      <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+      <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+    </svg>
+  </div>
+  <div class="cond-hero-text">
+    <h2>Supervisores</h2>
+    <p>Registro de supervisores y datos de acceso al sistema</p>
+  </div>
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% for category, message in messages %}
+    <div class="flash-msg flash-{{ category }}">
+      {% if category == 'success' %}
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      {% else %}
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      {% endif %}
+      {{ message }}
+    </div>
+  {% endfor %}
+{% endwith %}
+
+<!-- FORMULARIO NUEVO SUPERVISOR -->
+<div class="cond-form-card">
+  <div class="cond-form-header">
+    <div class="cond-form-header-icon">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1d4ed8" stroke-width="2.2">
+        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+        <circle cx="9" cy="7" r="4"/>
+        <line x1="19" y1="8" x2="19" y2="14"/>
+        <line x1="16" y1="11" x2="22" y2="11"/>
+      </svg>
+    </div>
+    <div>
+      <h3>Nuevo supervisor</h3>
+      <p>Completa la información para registrar al supervisor en el sistema</p>
+    </div>
+  </div>
+  <div class="cond-form-body">
+    <form method="post" id="formSupervisor" novalidate>
+
+      <!-- ── DATOS PERSONALES ── -->
+      <div class="cond-section-label">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+        Datos personales
+      </div>
+      <div class="cond-grid">
+
+        <div class="cond-field full">
+          <label for="nombre_completo">Nombre completo <span class="req">*</span></label>
+          <input id="nombre_completo" name="nombre_completo"
+                 placeholder="Ej: María Fernanda López Gómez"
+                 autocomplete="off" maxlength="120">
+          <span class="field-msg" id="msg_nombre"></span>
+        </div>
+
+        <div class="cond-field">
+          <label for="telefono">Teléfono</label>
+          <input id="telefono" name="telefono" placeholder="Ej: 3001234567" type="tel" maxlength="15">
+          <span class="field-msg" id="msg_telefono"></span>
+        </div>
+
+        <div class="cond-field">
+          <label for="email">Correo electrónico <span class="req">*</span></label>
+          <input id="email" type="email" name="email"
+                 placeholder="supervisor@correo.com" maxlength="120">
+          <span class="field-msg" id="msg_email"></span>
+        </div>
+
+        <div class="cond-field full">
+          <label for="ciudad">Ciudad</label>
+          <input id="ciudad" name="ciudad" placeholder="Ej: Bogotá" maxlength="100">
+          <span class="field-msg" id="msg_ciudad"></span>
+        </div>
+
+      </div>
+
+      <!-- ── ACCESO AL SISTEMA ── -->
+      <div class="cond-section-label">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <rect x="3" y="11" width="18" height="11" rx="2"/>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+        Acceso al sistema
+      </div>
+      <div class="cond-grid">
+
+        <div class="cond-field">
+          <label for="password">Contraseña <span class="req">*</span></label>
+          <div class="cond-input-wrap">
+            <input id="password" name="password" type="password"
+                   placeholder="Mínimo 8 caracteres" maxlength="64" autocomplete="new-password">
+            <button type="button" class="btn-eye" id="btnEye1"
+                    onclick="togglePwd('password','eyeShow1','eyeHide1','btnEye1')"
+                    tabindex="-1" aria-label="Mostrar contraseña">
+              <svg id="eyeShow1" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+              </svg>
+              <svg id="eyeHide1" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none">
+                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+                <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+                <line x1="1" y1="1" x2="23" y2="23"/>
+              </svg>
+            </button>
+          </div>
+          <div class="pwd-strength-wrap" id="pwdStrengthWrap" style="display:none">
+            <div class="pwd-strength-bar">
+              <div class="pwd-strength-fill" id="pwdStrengthFill"></div>
+            </div>
+            <div class="pwd-strength-text" id="pwdStrengthText"></div>
+          </div>
+          <span class="field-msg" id="msg_password"></span>
+        </div>
+
+        <div class="cond-field">
+          <label for="password_confirm">Confirmar contraseña <span class="req">*</span></label>
+          <div class="cond-input-wrap">
+            <input id="password_confirm" name="password_confirm" type="password"
+                   placeholder="Repite la contraseña" maxlength="64" autocomplete="new-password">
+            <button type="button" class="btn-eye" id="btnEye2"
+                    onclick="togglePwd('password_confirm','eyeShow2','eyeHide2','btnEye2')"
+                    tabindex="-1" aria-label="Mostrar contraseña">
+              <svg id="eyeShow2" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+              </svg>
+              <svg id="eyeHide2" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none">
+                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+                <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+                <line x1="1" y1="1" x2="23" y2="23"/>
+              </svg>
+            </button>
+          </div>
+          <span class="field-msg" id="msg_confirm"></span>
+        </div>
+
+      </div>
+
+      <div class="cond-actions">
+        <button type="button" class="btn-reset" onclick="limpiarFormulario()">Limpiar</button>
+        <button type="submit" class="btn-guardar" id="btnGuardar">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
+            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+            <polyline points="17 21 17 13 7 13 7 21"/>
+            <polyline points="7 3 7 8 15 8"/>
+          </svg>
+          Guardar supervisor
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- LISTADO -->
+<div class="cond-list-card">
+  <div class="cond-list-header">
+    <h3>Listado de supervisores</h3>
+    <span class="cond-count">{{ items | length }} registrado{% if items | length != 1 %}s{% endif %}</span>
+  </div>
+  <div class="cond-search-wrap">
+    <input type="search" class="cond-search" id="searchSup"
+           placeholder="Buscar por nombre, correo, ciudad…" oninput="filtrarSup()">
+  </div>
+  <div class="cond-table-wrap">
+    <table class="cond-table" id="tablaSup">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Supervisor</th>
+          <th>Contacto</th>
+          <th>Ciudad</th>
+          <th>Estado</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in items %}
+        <tr>
+          <td><code style="font-size:11px;color:var(--muted);">{{ item.id }}</code></td>
+          <td>
+            <div class="cond-name-cell">
+              <div class="cond-avatar">{{ item.nombre[0] | upper }}</div>
+              <div class="cond-name-wrap"><strong>{{ item.nombre }}</strong></div>
+            </div>
+          </td>
+          <td>
+            <div class="cond-contact">
+              <strong>{{ item.telefono or '—' }}</strong>
+              {% if item.correo %}<span>{{ item.correo }}</span>{% endif %}
+            </div>
+          </td>
+          <td>{{ item.ciudad or '—' }}</td>
+          <td>
+            <span class="est-badge {% if item.activo %}est-activo{% else %}est-inactivo{% endif %}">
+              <span style="width:6px;height:6px;border-radius:50%;background:currentColor;display:inline-block;"></span>
+              {% if item.activo %}Activo{% else %}Inactivo{% endif %}
+            </span>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5">
+          <div class="cond-empty">
+            <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#93c5fd" stroke-width="1.5">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+            <p>Sin supervisores registrados todavía</p>
+          </div>
+        </td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════
+   VALIDACIONES — Supervisores LogiCarga
+═══════════════════════════════════════ */
+
+const SVG_OK  = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>`;
+const SVG_ERR = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
+
+/* ── Toggle ver/ocultar contraseña ── */
+function togglePwd(inputId, showId, hideId, btnId) {
+  var inp    = document.getElementById(inputId);
+  var show   = document.getElementById(showId);
+  var hide   = document.getElementById(hideId);
+  var btn    = document.getElementById(btnId);
+  var oculto = inp.type === 'password';
+  inp.type         = oculto ? 'text'    : 'password';
+  show.style.display = oculto ? 'none'  : 'block';
+  hide.style.display = oculto ? 'block' : 'none';
+  btn.style.color    = oculto ? '#2563eb' : '';
+  btn.animate([
+    { transform: 'scale(1)' },
+    { transform: 'scale(1.35)' },
+    { transform: 'scale(1)' }
+  ], { duration: 260, easing: 'cubic-bezier(.22,1,.36,1)' });
+}
+
+/* ── Helpers ── */
+function setMsg(id, text, tipo) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.innerHTML = text ? `${tipo === 'err' ? SVG_ERR : SVG_OK} ${text}` : '';
+  el.className = 'field-msg' + (text ? ' ' + tipo : '');
+}
+function setField(id, estado) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.classList.remove('field-ok', 'field-err');
+  if (estado === true)  el.classList.add('field-ok');
+  if (estado === false) el.classList.add('field-err');
+}
+
+/* ── Nombre ── */
+function validarNombre() {
+  const val = document.getElementById('nombre_completo').value.trim();
+  if (!val) {
+    setField('nombre_completo', false);
+    setMsg('msg_nombre', 'El nombre completo es obligatorio.', 'err');
+    return false;
+  }
+  if (/\d/.test(val)) {
+    setField('nombre_completo', false);
+    setMsg('msg_nombre', 'El nombre no debe contener números.', 'err');
+    return false;
+  }
+  if (!/^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s'´\-]+$/.test(val)) {
+    setField('nombre_completo', false);
+    setMsg('msg_nombre', 'Solo se permiten letras y espacios.', 'err');
+    return false;
+  }
+  if (val.replace(/\s+/g,' ').split(' ').filter(p => p).length < 2) {
+    setField('nombre_completo', false);
+    setMsg('msg_nombre', 'Ingresa al menos nombre y apellido.', 'err');
+    return false;
+  }
+  setField('nombre_completo', true);
+  setMsg('msg_nombre', 'Nombre válido.', 'ok');
+  return true;
+}
+
+/* ── Teléfono ── */
+function validarTelefono() {
+  const val = document.getElementById('telefono').value.trim();
+  if (!val) { setField('telefono', null); setMsg('msg_telefono', '', ''); return true; }
+  if (!/^\+?\d{7,15}$/.test(val)) {
+    setField('telefono', false);
+    setMsg('msg_telefono', 'Teléfono inválido. Ingresa entre 7 y 15 dígitos.', 'err');
+    return false;
+  }
+  setField('telefono', true);
+  setMsg('msg_telefono', 'Teléfono válido.', 'ok');
+  return true;
+}
+
+/* ── Email ── */
+function validarEmail() {
+  const val = document.getElementById('email').value.trim();
+  if (!val) {
+    setField('email', false);
+    setMsg('msg_email', 'El correo electrónico es obligatorio.', 'err');
+    return false;
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(val)) {
+    setField('email', false);
+    setMsg('msg_email', 'Ingresa un correo válido (ej: nombre@dominio.com).', 'err');
+    return false;
+  }
+  setField('email', true);
+  setMsg('msg_email', 'Correo válido.', 'ok');
+  return true;
+}
+
+/* ── Ciudad ── */
+function validarCiudad() {
+  const val = document.getElementById('ciudad').value.trim();
+  if (!val) { setField('ciudad', null); setMsg('msg_ciudad', '', ''); return true; }
+  if (/\d/.test(val)) {
+    setField('ciudad', false);
+    setMsg('msg_ciudad', 'La ciudad no debe contener números.', 'err');
+    return false;
+  }
+  setField('ciudad', null);
+  setMsg('msg_ciudad', '', '');
+  return true;
+}
+
+/* ── Contraseña + barra de fortaleza ── */
+function calcFortaleza(p) {
+  let s = 0;
+  if (p.length >= 8)          s++;
+  if (p.length >= 12)         s++;
+  if (/[A-Z]/.test(p))        s++;
+  if (/[0-9]/.test(p))        s++;
+  if (/[^A-Za-z0-9]/.test(p)) s++;
+  return s;
+}
+function validarPassword() {
+  const val  = document.getElementById('password').value;
+  const wrap = document.getElementById('pwdStrengthWrap');
+  const fill = document.getElementById('pwdStrengthFill');
+  const txt  = document.getElementById('pwdStrengthText');
+
+  if (!val) {
+    wrap.style.display = 'none';
+    setField('password', false);
+    setMsg('msg_password', 'La contraseña es obligatoria.', 'err');
+    return false;
+  }
+  wrap.style.display = 'block';
+  const score = calcFortaleza(val);
+  const pct   = Math.round((score / 5) * 100);
+  fill.style.width = pct + '%';
+  const niveles = [
+    { c: '#ef4444', l: 'Muy débil'  },
+    { c: '#f97316', l: 'Débil'      },
+    { c: '#eab308', l: 'Regular'    },
+    { c: '#22c55e', l: 'Buena'      },
+    { c: '#10b981', l: 'Muy fuerte' },
+  ];
+  const n = niveles[Math.max(0, Math.min(score - 1, 4))];
+  fill.style.backgroundColor = n.c;
+  txt.textContent = n.l;
+  txt.style.color = n.c;
+
+  if (val.length < 8) {
+    setField('password', false);
+    setMsg('msg_password', 'Mínimo 8 caracteres requeridos.', 'err');
+    return false;
+  }
+  setField('password', true);
+  setMsg('msg_password', '', '');
+  const conf = document.getElementById('password_confirm').value;
+  if (conf) validarConfirm();
+  return true;
+}
+
+/* ── Confirmar contraseña ── */
+function validarConfirm() {
+  const pwd  = document.getElementById('password').value;
+  const conf = document.getElementById('password_confirm').value;
+  if (!conf) {
+    setField('password_confirm', false);
+    setMsg('msg_confirm', 'Debes confirmar la contraseña.', 'err');
+    return false;
+  }
+  if (pwd !== conf) {
+    setField('password_confirm', false);
+    setMsg('msg_confirm', 'Las contraseñas no coinciden.', 'err');
+    return false;
+  }
+  setField('password_confirm', true);
+  setMsg('msg_confirm', 'Las contraseñas coinciden.', 'ok');
+  return true;
+}
+
+/* ── Eventos en tiempo real ── */
+document.getElementById('nombre_completo').addEventListener('input', validarNombre);
+document.getElementById('nombre_completo').addEventListener('blur',  validarNombre);
+document.getElementById('telefono').addEventListener('input', validarTelefono);
+document.getElementById('telefono').addEventListener('blur',  validarTelefono);
+document.getElementById('email').addEventListener('input', validarEmail);
+document.getElementById('email').addEventListener('blur',  validarEmail);
+document.getElementById('ciudad').addEventListener('input', validarCiudad);
+document.getElementById('ciudad').addEventListener('blur',  validarCiudad);
+document.getElementById('password').addEventListener('input', validarPassword);
+document.getElementById('password').addEventListener('blur',  validarPassword);
+document.getElementById('password_confirm').addEventListener('input', validarConfirm);
+document.getElementById('password_confirm').addEventListener('blur',  validarConfirm);
+
+/* ── Submit: valida todo antes de enviar ── */
+document.getElementById('formSupervisor').addEventListener('submit', function(e) {
+  const resultados = [
+    validarNombre(),
+    validarTelefono(),
+    validarEmail(),
+    validarCiudad(),
+    validarPassword(),
+    validarConfirm(),
+  ];
+  const todoBien = resultados.every(Boolean);
+  if (!todoBien) {
+    e.preventDefault();
+    const primerError = document.querySelector('.field-err');
+    if (primerError) primerError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+});
+
+/* ── Limpiar formulario ── */
+function limpiarFormulario() {
+  document.getElementById('formSupervisor').reset();
+  document.querySelectorAll('#formSupervisor input, #formSupervisor select').forEach(el => {
+    el.classList.remove('field-ok', 'field-err');
+  });
+  document.querySelectorAll('.field-msg').forEach(el => {
+    el.innerHTML = ''; el.className = 'field-msg';
+  });
+  document.getElementById('pwdStrengthWrap').style.display = 'none';
+  ['password','password_confirm'].forEach(id => {
+    document.getElementById(id).type = 'password';
+  });
+  document.getElementById('eyeShow1').style.display = 'block';
+  document.getElementById('eyeHide1').style.display = 'none';
+  document.getElementById('eyeShow2').style.display = 'block';
+  document.getElementById('eyeHide2').style.display = 'none';
+  document.getElementById('btnEye1').style.color = '';
+  document.getElementById('btnEye2').style.color = '';
+}
+
+/* ── Búsqueda en tabla ── */
+function filtrarSup() {
+  const q = document.getElementById('searchSup').value.toLowerCase();
+  document.querySelectorAll('#tablaSup tbody tr').forEach(row => {
+    row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
+  });
+}
+</script>
+
+{% endblock %}

@@ -81,7 +81,7 @@ DB_CONFIG = {
 ROLE_PERMISSIONS = {
     # Administrador: crea usuarios (supervisores y conductores) y gestiona la flota de vehiculos
     'Administrador': {
-        'dashboard', 'usuarios', 'vehiculos', 'viaticos', 'reportes', 'consultas', 'metodologia'
+        'dashboard', 'usuarios', 'supervisores', 'vehiculos', 'viaticos', 'reportes', 'consultas', 'metodologia'
     },
     # Supervisor: monitorea la operacion — ve viajes, conductores, viaticos, reportes, mantenimientos y consultas
     'Supervisor': {
@@ -534,6 +534,77 @@ def conductores():
         data, usuarios_libres = [], []
     return render_template('conductores.html', items=data, usuarios_libres=usuarios_libres)
 
+
+
+
+@app.route('/supervisores', methods=['GET', 'POST'])
+@login_required
+def supervisores():
+    if session['user']['rol'] != 'Administrador':
+        flash('No tienes permisos para acceder a esta sección.', 'error')
+        return redirect(url_for('dashboard'))
+
+    if request.method == 'POST':
+        try:
+            nombre_completo  = request.form.get('nombre_completo', '').strip()
+            telefono         = request.form.get('telefono', '').strip() or None
+            email            = request.form.get('email', '').strip() or None
+            ciudad           = request.form.get('ciudad', '').strip() or None
+            password         = request.form.get('password', '').strip()
+            password_confirm = request.form.get('password_confirm', '').strip()
+
+            import re as _re
+            if not nombre_completo:
+                flash('El nombre completo es obligatorio.', 'error')
+                return redirect(url_for('supervisores'))
+            if _re.search(r'\d', nombre_completo):
+                flash('El nombre no debe contener numeros.', 'error')
+                return redirect(url_for('supervisores'))
+            if not email:
+                flash('El correo electronico es obligatorio.', 'error')
+                return redirect(url_for('supervisores'))
+            if not password:
+                flash('La contrasena es obligatoria.', 'error')
+                return redirect(url_for('supervisores'))
+            if len(password) < 8:
+                flash('La contrasena debe tener minimo 8 caracteres.', 'error')
+                return redirect(url_for('supervisores'))
+            if password != password_confirm:
+                flash('Las contrasenas no coinciden.', 'error')
+                return redirect(url_for('supervisores'))
+
+            usuario_existente = fetch_one('SELECT id FROM usuarios WHERE correo = %s', (email,))
+            if usuario_existente:
+                flash('Ya existe un usuario registrado con ese correo electronico.', 'error')
+                return redirect(url_for('supervisores'))
+
+            rol_supervisor = fetch_one("SELECT id FROM roles WHERE nombre='Supervisor' LIMIT 1")
+            rol_id = rol_supervisor['id'] if rol_supervisor else None
+
+            hashed_pw = _hash_password(password)
+            execute_query(
+                "INSERT INTO usuarios (rol_id, nombre, correo, password, telefono, activo) VALUES (%s,%s,%s,%s,%s,1)",
+                (rol_id, nombre_completo, email, hashed_pw, telefono)
+            )
+            flash('Supervisor registrado correctamente.', 'success')
+        except Exception as e:
+            flash('Error al registrar el supervisor.', 'error')
+            logger.error("supervisores POST error: %s", e)
+        return redirect(url_for('supervisores'))
+
+    try:
+        data = fetch_all("""
+            SELECT u.id, u.nombre, u.correo, u.telefono, u.activo
+            FROM usuarios u
+            INNER JOIN roles r ON r.id = u.rol_id
+            WHERE r.nombre = 'Supervisor'
+            ORDER BY u.id DESC
+        """)
+    except Exception as e:
+        flash('Error al cargar supervisores.', 'error')
+        logger.error("supervisores GET error: %s", e)
+        data = []
+    return render_template('supervisores.html', items=data)
 
 @app.route('/vehiculos', methods=['GET', 'POST'])
 @login_required

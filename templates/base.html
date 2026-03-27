@@ -106,6 +106,12 @@
                 Usuarios
             </a>{% endif %}
 
+
+            {% if 'supervisores' in permissions %}
+            <a href="{{ url_for('supervisores') }}" class="nav-item {% if request.endpoint == 'supervisores' %}active{% endif %}">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><path d="M16 3.13a4 4 0 0 1 0 7.75M21 21v-2a4 4 0 0 0-3-3.85"/></svg>
+                Supervisores
+            </a>{% endif %}
             {% if 'vehiculos' in permissions %}
             <a href="{{ url_for('vehiculos') }}" class="nav-item {% if request.endpoint == 'vehiculos' %}active{% endif %}">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="9" width="18" height="9" rx="2"/><path d="M19 13h3l1 4H19"/><circle cx="6" cy="20" r="2"/><circle cx="15" cy="20" r="2"/><path d="M1 9l3-6h12l2 6"/></svg>
