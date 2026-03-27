@@ -2104,6 +2104,59 @@ button:active { transform: scale(0.97) translateY(0) !important; box-shadow: 0 2
    grids, tablas, modales, perfil, formularios, tipografía
 ═══════════════════════════════════════════════════════════ */
 
+/* ════════════════════════════════════════════
+   HAMBURGUESA — ESTILOS BASE (fuera de media query)
+════════════════════════════════════════════ */
+.hamburger-btn {
+  display: none;
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  z-index: 1100;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: rgba(28,16,9,0.92);
+  border: 1.5px solid rgba(251,191,36,0.25);
+  cursor: pointer;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 0;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+  transition: background 0.2s, border-color 0.2s, transform 0.2s;
+  backdrop-filter: blur(8px);
+}
+.hamburger-btn:hover {
+  background: rgba(40,22,10,0.98);
+  border-color: rgba(251,191,36,0.5);
+  transform: scale(1.05);
+}
+.hamburger-btn span {
+  display: block;
+  width: 20px;
+  height: 2px;
+  background: #f59e0b;
+  border-radius: 2px;
+  transition: transform 0.3s cubic-bezier(.22,1,.36,1), opacity 0.2s, width 0.2s;
+}
+.hamburger-btn.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.hamburger-btn.open span:nth-child(2) { opacity: 0; width: 0; }
+.hamburger-btn.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+/* ── OVERLAY (fondo oscuro cuando sidebar está abierto) ── */
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  z-index: 999;
+  backdrop-filter: blur(3px);
+  transition: opacity 0.3s;
+}
+.sidebar-overlay.active { display: block; }
+
 /* ── Sin scroll horizontal en toda la app ── */
 html, body { overflow-x: hidden !important; }
 *, *::before, *::after { box-sizing: border-box !important; }
