@@ -396,7 +396,7 @@ def usuarios():
             execute_query(
                 "INSERT INTO usuarios (rol_id, nombre, correo, password, telefono, activo) VALUES (%s,%s,%s,%s,%s,1)",
                 (request.form['rol_id'], request.form['nombre'], request.form['correo'],
-                 hashed_pw, request.form['telefono'])
+                 hashed_pw, request.form.get('telefono', ''))
             )
             # Si es Conductor, crear también su registro en conductores
             rol_conductor = fetch_all(

@@ -243,27 +243,23 @@
         <div class="cond-grid">
           <div class="cond-field full">
             <label>Nombre completo <span class="req">*</span></label>
-            <input name="nombre" placeholder="Ej: Carlos Andrés Ruiz López" required autocomplete="off">
+            <input name="nombre_conductor" id="nombre_conductor" placeholder="Ej: Carlos Andrés Ruiz López" autocomplete="off">
           </div>
           <div class="cond-field">
             <label>Correo electrónico <span class="req">*</span></label>
-            <input type="email" name="correo" placeholder="correo@empresa.com" required>
+            <input type="email" name="correo_conductor" id="correo_conductor" placeholder="correo@empresa.com">
           </div>
           <div class="cond-field">
             <label>Contraseña <span class="req">*</span></label>
-            <input type="password" name="password" placeholder="Mínimo 6 caracteres" required>
+            <input type="password" name="password_conductor" id="password_conductor" placeholder="Mínimo 6 caracteres">
           </div>
           <div class="cond-field">
             <label>Teléfono</label>
-            <input name="telefono" placeholder="Ej: 3001234567">
+            <input name="telefono_conductor" id="telefono_conductor" placeholder="Ej: 3001234567">
           </div>
           <div class="cond-field">
             <label>Ciudad</label>
             <input name="ciudad_conductor" placeholder="Ej: Bogotá">
-          </div>
-          <div class="cond-field">
-            <label>Dirección</label>
-            <input name="direccion_conductor" placeholder="Ej: Cra 15 # 32-10">
           </div>
         </div>
 
@@ -422,6 +418,10 @@ function switchRol(tipo) {
     btn.textContent = 'Crear cuenta de Conductor';
     btn.style.background = 'linear-gradient(135deg,#f59e0b,#d97706)';
     btn.style.boxShadow  = '0 4px 18px rgba(5,150,105,0.35)';
+    // Requerir campos del conductor
+    document.getElementById('nombre_conductor').required = true;
+    document.getElementById('correo_conductor').required = true;
+    document.getElementById('password_conductor').required = true;
   } else {
     bloqueCredenciales.style.display = 'block';
     secConductor.style.display = 'none';
@@ -430,8 +430,45 @@ function switchRol(tipo) {
     btn.textContent = 'Crear cuenta de Supervisor';
     btn.style.background = 'linear-gradient(135deg,#f59e0b,#d97706)';
     btn.style.boxShadow  = '0 4px 18px rgba(217,119,6,0.35)';
+    // Quitar required de campos conductor
+    document.getElementById('nombre_conductor').required = false;
+    document.getElementById('correo_conductor').required = false;
+    document.getElementById('password_conductor').required = false;
   }
 }
+
+// Al enviar el form, unificar los campos según el rol activo
+document.getElementById('formUsuario').addEventListener('submit', function(e) {
+  const secConductor = document.getElementById('seccionConductor');
+  if (secConductor.style.display !== 'none') {
+    // Es conductor: copiar valores a los campos genéricos que espera el backend
+    const nombre   = document.getElementById('nombre_conductor').value.trim();
+    const correo   = document.getElementById('correo_conductor').value.trim();
+    const password = document.getElementById('password_conductor').value;
+    const telefono = document.getElementById('telefono_conductor').value.trim();
+    if (!nombre || !correo || !password) {
+      e.preventDefault();
+      alert('Por favor completa Nombre, Correo y Contraseña.');
+      return;
+    }
+    // Insertar campos ocultos con los nombres que espera Flask
+    function setHidden(name, value) {
+      let input = document.querySelector('input[name="' + name + '"][type="hidden"]._dyn');
+      if (!input) {
+        input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = name;
+        input.classList.add('_dyn');
+        document.getElementById('formUsuario').appendChild(input);
+      }
+      input.value = value;
+    }
+    setHidden('nombre',   nombre);
+    setHidden('correo',   correo);
+    setHidden('password', password);
+    setHidden('telefono', telefono);
+  }
+});
 
 function filtrarRol(rol, btn) {
   document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
