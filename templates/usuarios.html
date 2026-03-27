@@ -439,35 +439,38 @@ function switchRol(tipo) {
 
 // Al enviar el form, unificar los campos según el rol activo
 document.getElementById('formUsuario').addEventListener('submit', function(e) {
-  const secConductor = document.getElementById('seccionConductor');
-  if (secConductor.style.display !== 'none') {
-    // Es conductor: copiar valores a los campos genéricos que espera el backend
-    const nombre   = document.getElementById('nombre_conductor').value.trim();
-    const correo   = document.getElementById('correo_conductor').value.trim();
-    const password = document.getElementById('password_conductor').value;
-    const telefono = document.getElementById('telefono_conductor').value.trim();
+  e.preventDefault();
+  var form = this;
+  var secConductor = document.getElementById('seccionConductor');
+  var esConductor  = secConductor.style.display !== 'none';
+
+  if (esConductor) {
+    var nombre   = document.getElementById('nombre_conductor').value.trim();
+    var correo   = document.getElementById('correo_conductor').value.trim();
+    var password = document.getElementById('password_conductor').value;
+    var telefono = document.getElementById('telefono_conductor').value.trim();
     if (!nombre || !correo || !password) {
-      e.preventDefault();
       alert('Por favor completa Nombre, Correo y Contraseña.');
       return;
     }
-    // Insertar campos ocultos con los nombres que espera Flask
-    function setHidden(name, value) {
-      let input = document.querySelector('input[name="' + name + '"][type="hidden"]._dyn');
-      if (!input) {
-        input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = name;
-        input.classList.add('_dyn');
-        document.getElementById('formUsuario').appendChild(input);
-      }
-      input.value = value;
-    }
-    setHidden('nombre',   nombre);
-    setHidden('correo',   correo);
-    setHidden('password', password);
-    setHidden('telefono', telefono);
+    // Eliminar inputs dinámicos anteriores
+    form.querySelectorAll('input[data-dyn]').forEach(function(i){ i.remove(); });
+    // Crear inputs ocultos con los nombres que espera Flask
+    [['nombre',nombre],['correo',correo],['password',password],['telefono',telefono]].forEach(function(pair){
+      var inp = document.createElement('input');
+      inp.type = 'hidden'; inp.name = pair[0]; inp.value = pair[1];
+      inp.setAttribute('data-dyn','1');
+      form.appendChild(inp);
+    });
   }
+  // Quitar required de secciones ocultas para que el browser no bloquee el submit
+  form.querySelectorAll('#seccionConductor input, #seccionConductor select').forEach(function(el){
+    el.removeAttribute('required');
+  });
+  form.querySelectorAll('#bloqueCredenciales input, #bloqueCredenciales select').forEach(function(el){
+    el.removeAttribute('required');
+  });
+  form.submit();
 });
 
 function filtrarRol(rol, btn) {
