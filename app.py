@@ -455,15 +455,64 @@ def conductores():
 
     if request.method == 'POST':
         try:
+            nombre_completo = request.form.get('nombre_completo', '').strip()
+            numero_licencia = request.form.get('numero_licencia', '').strip()
+            tipo_licencia   = request.form.get('tipo_licencia', '').strip() or None
+            telefono        = request.form.get('telefono', '').strip() or None
+            email           = request.form.get('email', '').strip() or None
+            ciudad          = request.form.get('ciudad', '').strip() or None
+            fecha_venc      = request.form.get('fecha_vencimiento_licencia', '').strip() or None
+            password        = request.form.get('password', '').strip()
+            password_confirm= request.form.get('password_confirm', '').strip()
+
+            # Validaciones de servidor
+            import re as _re
+            if not nombre_completo:
+                flash('El nombre completo es obligatorio.', 'error')
+                return redirect(url_for('conductores'))
+            if _re.search(r'\d', nombre_completo):
+                flash('El nombre no debe contener números.', 'error')
+                return redirect(url_for('conductores'))
+            if not numero_licencia:
+                flash('El número de licencia es obligatorio.', 'error')
+                return redirect(url_for('conductores'))
+            if not email:
+                flash('El correo electrónico es obligatorio.', 'error')
+                return redirect(url_for('conductores'))
+            if not password:
+                flash('La contraseña es obligatoria.', 'error')
+                return redirect(url_for('conductores'))
+            if len(password) < 8:
+                flash('La contraseña debe tener mínimo 8 caracteres.', 'error')
+                return redirect(url_for('conductores'))
+            if password != password_confirm:
+                flash('Las contraseñas no coinciden.', 'error')
+                return redirect(url_for('conductores'))
+
+            # Verificar si ya existe un usuario con ese correo
+            usuario_existente = fetch_one('SELECT id FROM usuarios WHERE correo = %s', (email,))
+            if usuario_existente:
+                flash('Ya existe un usuario registrado con ese correo electrónico.', 'error')
+                return redirect(url_for('conductores'))
+
+            # Obtener rol_id de Conductor
+            rol_conductor = fetch_one("SELECT id FROM roles WHERE nombre='Conductor' LIMIT 1")
+            rol_id = rol_conductor['id'] if rol_conductor else None
+
+            # Crear usuario en la tabla usuarios
+            hashed_pw = _hash_password(password)
+            nuevo_usuario_id = execute_query(
+                "INSERT INTO usuarios (rol_id, nombre, correo, password, telefono, activo) VALUES (%s,%s,%s,%s,%s,1)",
+                (rol_id, nombre_completo, email, hashed_pw, telefono)
+            )
+
+            # Crear el conductor vinculado al usuario
             execute_query(
-                """INSERT INTO conductores (usuario_id, nombre_completo, numero_licencia, tipo_licencia, telefono, email, direccion, ciudad, fecha_vencimiento_licencia, estado)
-                   VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)""",
-                (request.form['usuario_id'] or None, request.form['nombre_completo'],
-                 request.form['numero_licencia'], request.form['tipo_licencia'] or None,
-                 request.form['telefono'], request.form['email'],
-                 request.form['direccion'], request.form['ciudad'],
-                 request.form['fecha_vencimiento_licencia'] or None,
-                 'Activo')
+                """INSERT INTO conductores (usuario_id, nombre_completo, numero_licencia, tipo_licencia,
+                   telefono, email, ciudad, fecha_vencimiento_licencia, estado)
+                   VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)""",
+                (nuevo_usuario_id, nombre_completo, numero_licencia, tipo_licencia,
+                 telefono, email, ciudad, fecha_venc, 'Activo')
             )
             flash('Conductor registrado correctamente.', 'success')
         except Exception as e:
